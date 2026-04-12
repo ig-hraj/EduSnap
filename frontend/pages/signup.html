@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - EduSnap</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .auth-container {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 450px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .auth-header h1 {
+      color: #333;
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .auth-header p {
+      color: #666;
+      margin: 10px 0 0 0;
+      font-size: 14px;
+    }
+
+    .role-selector {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .role-option {
+      flex: 1;
+      padding: 15px;
+      border: 2px solid #ddd;
+      background: white;
+      cursor: pointer;
+      border-radius: 5px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .role-option:hover {
+      border-color: #667eea;
+    }
+
+    .role-option.selected {
+      border-color: #667eea;
+      background: #f0f4ff;
+    }
+
+    .role-option-title {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+
+    .role-option-desc {
+      color: #999;
+      font-size: 12px;
+    }
+
+    .form-section {
+      display: none;
+    }
+
+    .form-section.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-row .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: #333;
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 13px;
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 5px rgba(102, 126, 234, 0.1);
+    }
+
+    .subjects-input {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .btn-signup {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+      margin-top: 10px;
+    }
+
+    .btn-signup:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-signup:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .form-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .form-footer a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .form-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .error-message,
+    .success-message {
+      font-size: 13px;
+      margin-bottom: 15px;
+      padding: 12px;
+      border-radius: 5px;
+      display: none;
+    }
+
+    .error-message {
+      color: #e74c3c;
+      background: #fadbd8;
+    }
+
+    .success-message {
+      color: #27ae60;
+      background: #d5f4e6;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-header">
+      <h1>Join EduSnap</h1>
+      <p>Choose your role to get started</p>
+    </div>
+
+    <div class="role-selector">
+      <div class="role-option selected" data-role="student">
+        <div class="role-option-title">👨‍🎓 Student</div>
+        <div class="role-option-desc">Find tutors</div>
+      </div>
+      <div class="role-option" data-role="tutor">
+        <div class="role-option-title">👨‍🏫 Tutor</div>
+        <div class="role-option-desc">Offer classes</div>
+      </div>
+    </div>
+
+    <div class="error-message" id="errorMessage"></div>
+    <div class="success-message" id="successMessage"></div>
+
+    <!-- Student Form -->
+    <form id="studentForm" class="form-section active">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="studentFirstName">First Name</label>
+          <input type="text" id="studentFirstName" placeholder="John" required>
+        </div>
+        <div class="form-group">
+          <label for="studentLastName">Last Name</label>
+          <input type="text" id="studentLastName" placeholder="Doe" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="studentEmail">Email</label>
+        <input type="email" id="studentEmail" placeholder="john@example.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="studentPassword">Password</label>
+        <input type="password" id="studentPassword" placeholder="••••••••" required>
+      </div>
+
+      <div class="form-group">
+        <label for="studentPhone">Phone (Optional)</label>
+        <input type="tel" id="studentPhone" placeholder="+1 (555) 000-0000">
+      </div>
+
+      <div class="form-group">
+        <label for="studentSubjects">Subjects You Need Help In</label>
+        <input type="text" id="studentSubjects" placeholder="Math, Science, English (comma-separated)" class="subjects-input">
+      </div>
+
+      <button type="submit" class="btn-signup">Create Student Account</button>
+    </form>
+
+    <!-- Tutor Form -->
+    <form id="tutorForm" class="form-section">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="tutorFirstName">First Name</label>
+          <input type="text" id="tutorFirstName" placeholder="John" required>
+        </div>
+        <div class="form-group">
+          <label for="tutorLastName">Last Name</label>
+          <input type="text" id="tutorLastName" placeholder="Doe" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="tutorEmail">Email</label>
+        <input type="email" id="tutorEmail" placeholder="john@example.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="tutorPassword">Password</label>
+        <input type="password" id="tutorPassword" placeholder="••••••••" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="tutorPhone">Phone (Optional)</label>
+          <input type="tel" id="tutorPhone" placeholder="+1 (555) 000-0000">
+        </div>
+        <div class="form-group">
+          <label for="tutorHourlyRate">Hourly Rate ($)</label>
+          <input type="number" id="tutorHourlyRate" placeholder="25" min="1" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="tutorBio">Professional Bio</label>
+        <textarea id="tutorBio" placeholder="Tell students about your experience and teaching style..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="tutorSubjects">Subjects You Teach</label>
+        <input type="text" id="tutorSubjects" placeholder="Math, Science, English (comma-separated)" class="subjects-input">
+      </div>
+
+      <button type="submit" class="btn-signup">Create Tutor Account</button>
+    </form>
+
+    <div class="form-footer">
+      Already have an account? <a href="login.html">Login here</a>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:5000/api';
+    let selectedRole = 'student';
+
+    // Role selection
+    document.querySelectorAll('.role-option').forEach(option => {
+      option.addEventListener('click', () => {
+        document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        selectedRole = option.dataset.role;
+
+        document.querySelectorAll('.form-section').forEach(form => form.classList.remove('active'));
+        document.getElementById(`${selectedRole}Form`).classList.add('active');
+      });
+    });
+
+    // Student Form Submission
+    document.getElementById('studentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorMsg = document.getElementById('errorMessage');
+      const successMsg = document.getElementById('successMessage');
+
+      try {
+        const subjects = document.getElementById('studentSubjects').value.split(',').map(s => s.trim());
+
+        const response = await fetch(`${API_URL}/auth/student/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('studentEmail').value,
+            password: document.getElementById('studentPassword').value,
+            firstName: document.getElementById('studentFirstName').value,
+            lastName: document.getElementById('studentLastName').value,
+            phone: document.getElementById('studentPhone').value,
+            subjects: subjects.filter(s => s.length > 0),
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.message);
+
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('userRole', 'student');
+        localStorage.setItem('userId', data.user.id);
+
+        successMsg.textContent = 'Account created! Redirecting...';
+        successMsg.style.display = 'block';
+
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1500);
+      } catch (error) {
+        errorMsg.textContent = error.message;
+        errorMsg.style.display = 'block';
+      }
+    });
+
+    // Tutor Form Submission
+    document.getElementById('tutorForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorMsg = document.getElementById('errorMessage');
+      const successMsg = document.getElementById('successMessage');
+
+      try {
+        const subjects = document.getElementById('tutorSubjects').value.split(',').map(s => s.trim());
+
+        const response = await fetch(`${API_URL}/auth/tutor/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('tutorEmail').value,
+            password: document.getElementById('tutorPassword').value,
+            firstName: document.getElementById('tutorFirstName').value,
+            lastName: document.getElementById('tutorLastName').value,
+            phone: document.getElementById('tutorPhone').value,
+            hourlyRate: parseFloat(document.getElementById('tutorHourlyRate').value),
+            bio: document.getElementById('tutorBio').value,
+            subjects: subjects.filter(s => s.length > 0),
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.message);
+
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('userRole', 'tutor');
+        localStorage.setItem('userId', data.user.id);
+
+        successMsg.textContent = 'Account created! Redirecting...';
+        successMsg.style.display = 'block';
+
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1500);
+      } catch (error) {
+        errorMsg.textContent = error.message;
+        errorMsg.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
