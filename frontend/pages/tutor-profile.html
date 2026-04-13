@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutor Profile - EduSnap</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+    }
+
+    /* Header */
+    .header {
+      background: white;
+      padding: 20px 0;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      cursor: pointer;
+    }
+
+    .header-links {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .header-links a {
+      text-decoration: none;
+      color: #666;
+      font-size: 14px;
+      transition: color 0.3s;
+      cursor: pointer;
+    }
+
+    .header-links a:hover {
+      color: #667eea;
+    }
+
+    .logout-btn {
+      background: #e74c3c;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+      margin-bottom: 30px;
+      color: #999;
+      font-size: 14px;
+    }
+
+    .breadcrumb a {
+      color: #667eea;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+
+    /* Profile Card */
+    .profile-card {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      margin-bottom: 30px;
+    }
+
+    .profile-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 50px 30px;
+      text-align: center;
+    }
+
+    .profile-avatar {
+      font-size: 80px;
+      margin-bottom: 20px;
+    }
+
+    .profile-name {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .profile-subjects {
+      font-size: 16px;
+      opacity: 0.9;
+      margin-bottom: 15px;
+      font-weight: 300;
+    }
+
+    .profile-rating {
+      font-size: 16px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.2);
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 20px;
+    }
+
+    /* Profile Body */
+    .profile-body {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 30px;
+      padding: 30px;
+    }
+
+    .profile-section {
+      margin-bottom: 30px;
+    }
+
+    .profile-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #333;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 10px;
+    }
+
+    .bio-text {
+      color: #666;
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    /* Subjects Grid */
+    .subjects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .subject-badge {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* Availability */
+    .availability-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .availability-slot {
+      background: #f9fafb;
+      padding: 12px;
+      border-radius: 6px;
+      text-align: center;
+      border-left: 3px solid #667eea;
+    }
+
+    .slot-day {
+      font-weight: 600;
+      font-size: 13px;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .slot-time {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .slot-unavailable {
+      color: #999;
+      font-style: italic;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .info-box {
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .info-label {
+      font-size: 12px;
+      color: #999;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .info-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .info-unit {
+      font-size: 14px;
+      color: #666;
+      margin-left: 5px;
+      font-weight: 400;
+    }
+
+    .book-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .book-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .message-btn {
+      width: 100%;
+      padding: 12px;
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .message-btn:hover {
+      background: #f0f4ff;
+    }
+
+    /* Loading State */
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+
+    .error {
+      background: #fadbd8;
+      color: #c0392b;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .profile-body {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-name {
+        font-size: 24px;
+      }
+
+      .profile-avatar {
+        font-size: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="logo" onclick="window.location.href='/'">📚 EduSnap</div>
+      <div class="header-links">
+        <a href="tutor-list.html">← Back to Tutors</a>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Container -->
+  <div class="container">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="/">Home</a> / <a href="tutor-list.html">Find Tutors</a> / <span id="pageTitle">Tutor Profile</span>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="loading">
+      Loading tutor profile...
+    </div>
+
+    <!-- Profile Content (hidden by default) -->
+    <div id="profileContent" style="display: none;">
+      <!-- Profile Card -->
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="profile-avatar">👨‍🏫</div>
+          <div class="profile-name" id="tutorName">-</div>
+          <div class="profile-subjects" id="tutorSubjects">-</div>
+          <div class="profile-rating" id="tutorRating">-</div>
+        </div>
+
+        <div class="profile-body">
+          <!-- Left Section -->
+          <div>
+            <!-- Bio -->
+            <div class="profile-section">
+              <div class="section-title">About</div>
+              <div class="bio-text" id="tutorBio">No bio available</div>
+            </div>
+
+            <!-- Subjects -->
+            <div class="profile-section">
+              <div class="section-title">Teaches</div>
+              <div class="subjects-grid" id="tutorSubjectsGrid">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- Availability -->
+            <div class="profile-section">
+              <div class="section-title">Weekly Availability</div>
+              <div class="availability-grid" id="availabilityGrid">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Sidebar -->
+          <div class="sidebar">
+            <!-- Hourly Rate -->
+            <div class="info-box">
+              <div class="info-label">Hourly Rate</div>
+              <div style="display: flex; align-items: baseline;">
+                <span class="info-value" id="tutorRate">-</span>
+                <span class="info-unit">/hour</span>
+              </div>
+            </div>
+
+            <!-- Reviews -->
+            <div class="info-box">
+              <div class="info-label">Reviews</div>
+              <div class="info-value" id="tutorReviews">-</div>
+            </div>
+
+            <!-- Rating -->
+            <div class="info-box">
+              <div class="info-label">Rating</div>
+              <div class="info-value" id="sidebarRating">-</div>
+              <div style="font-size: 12px; color: #666; margin-top: 5px;" id="totalReviews">-</div>
+            </div>
+
+            <!-- Actions -->
+            <button class="book-btn" onclick="bookSession()">Book a Session</button>
+            <button class="message-btn" onclick="sendMessage()">Send Message</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" style="display: none;">
+      <div class="error">
+        <h3>Error loading tutor profile</h3>
+        <p id="errorMessage">Unable to load the requested tutor profile.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/tutors.js"></script>
+  <script>
+    let tutorId = null;
+    let tutorData = null;
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', async () => {
+      requireAuth();
+
+      // Get tutor ID from URL
+      const params = new URLSearchParams(window.location.search);
+      tutorId = params.get('id');
+
+      if (!tutorId) {
+        showError('No tutor ID provided');
+        return;
+      }
+
+      await loadTutorProfile();
+    });
+
+    // Load tutor profile
+    async function loadTutorProfile() {
+      try {
+        const response = await getTutorById(tutorId);
+        tutorData = response.tutor;
+        renderProfile();
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('profileContent').style.display = 'block';
+      } catch (error) {
+        showError(error.message);
+      }
+    }
+
+    // Render profile
+    function renderProfile() {
+      if (!tutorData) return;
+
+      // Header Info
+      document.getElementById('tutorName').textContent = `${tutorData.firstName} ${tutorData.lastName}`;
+      document.getElementById('tutorSubjects').textContent = tutorData.subjects.join(', ') || 'Tutor';
+      document.getElementById('tutorRating').textContent = createStarRating(tutorData.ratings, tutorData.totalReviews);
+      document.getElementById('pageTitle').textContent = `${tutorData.firstName} ${tutorData.lastName}`;
+
+      // Bio
+      document.getElementById('tutorBio').textContent = tutorData.bio || 'This tutor hasn\'t added a bio yet.';
+
+      // Subjects Grid
+      document.getElementById('tutorSubjectsGrid').innerHTML = tutorData.subjects
+        .map(s => `<div class="subject-badge">${s}</div>`)
+        .join('');
+
+      // Availability
+      const formattedAvailability = formatAvailability(tutorData.availability || {});
+      document.getElementById('availabilityGrid').innerHTML = Object.entries(formattedAvailability)
+        .map(([day, time]) => `
+          <div class="availability-slot">
+            <div class="slot-day">${day}</div>
+            <div class="slot-time ${time === 'Not Available' ? 'slot-unavailable' : ''}">${time}</div>
+          </div>
+        `)
+        .join('');
+
+      // Sidebar Info
+      document.getElementById('tutorRate').textContent = `$${tutorData.hourlyRate}`;
+      document.getElementById('tutorReviews').textContent = tutorData.totalReviews || '0';
+      document.getElementById('sidebarRating').textContent = tutorData.ratings ? tutorData.ratings.toFixed(1) : '-';
+      document.getElementById('totalReviews').textContent = `Based on ${tutorData.totalReviews || 0} reviews`;
+    }
+
+    // Book session
+    function bookSession() {
+      alert('Booking feature coming soon! You can book a session with ' + tutorData.firstName + '.');
+      // In Step 3, this will redirect to booking page
+    }
+
+    // Send message
+    function sendMessage() {
+      alert('Messaging feature coming soon! You can chat with ' + tutorData.firstName + '.');
+      // In future, this will open a message interface
+    }
+
+    // Show error
+    function showError(message) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('profileContent').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
+      document.getElementById('errorMessage').textContent = message;
+    }
+  </script>
+</body>
+</html>

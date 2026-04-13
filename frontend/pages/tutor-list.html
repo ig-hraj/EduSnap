@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find Tutors - EduSnap</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+    }
+
+    /* Header */
+    .header {
+      background: white;
+      padding: 20px 0;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      cursor: pointer;
+    }
+
+    .header-links {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .header-links a {
+      text-decoration: none;
+      color: #666;
+      font-size: 14px;
+      transition: color 0.3s;
+    }
+
+    .header-links a:hover {
+      color: #667eea;
+    }
+
+    .logout-btn {
+      background: #e74c3c;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px 20px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 30px;
+    }
+
+    /* Sidebar Filters */
+    .filters {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      height: fit-content;
+    }
+
+    .filter-group {
+      margin-bottom: 25px;
+    }
+
+    .filter-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .filter-group h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .filter-group label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .filter-group input[type="text"],
+    .filter-group input[type="number"],
+    .filter-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .filter-group input[type="checkbox"] {
+      margin-right: 8px;
+      cursor: pointer;
+    }
+
+    .filter-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .filter-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .reset-btn {
+      width: 100%;
+      padding: 10px;
+      background: #f0f0f0;
+      color: #333;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 10px;
+      transition: background 0.3s;
+    }
+
+    .reset-btn:hover {
+      background: #e0e0e0;
+    }
+
+    /* Main Content */
+    .main {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    .search-section {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-bar input {
+      flex: 1;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    .search-bar button {
+      padding: 12px 25px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+
+    .search-bar button:hover {
+      transform: translateY(-2px);
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .results-count {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .sort-options {
+      display: flex;
+      gap: 10px;
+    }
+
+    .sort-btn {
+      padding: 8px 15px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.3s;
+    }
+
+    .sort-btn.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+
+    /* Tutors Grid */
+    .tutors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .tutor-card {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .tutor-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .tutor-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .tutor-avatar {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+
+    .tutor-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .tutor-title {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .tutor-body {
+      padding: 20px;
+    }
+
+    .tutor-subjects {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .subject-tag {
+      background: #f0f0f0;
+      color: #667eea;
+      padding: 4px 10px;
+      border-radius: 15px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .tutor-bio {
+      color: #666;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 15px;
+      min-height: 40px;
+    }
+
+    .tutor-rating {
+      color: #f39c12;
+      font-size: 13px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .tutor-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 15px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .tutor-rate {
+      font-size: 16px;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .view-btn {
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+
+    .view-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Loading & Empty State */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .empty-state {
+      background: white;
+      padding: 60px 20px;
+      border-radius: 10px;
+      text-align: center;
+      color: #999;
+    }
+
+    .empty-state h3 {
+      margin-bottom: 10px;
+      color: #666;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      .filters {
+        display: none;
+      }
+
+      .tutors-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="logo">📚 EduSnap</div>
+      <div class="header-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="#" id="userNameLink"></a>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Sidebar Filters -->
+    <aside class="filters">
+      <h2 style="margin-bottom: 20px; font-size: 18px;">Filters</h2>
+
+      <div class="filter-group">
+        <h3>Subject</h3>
+        <input type="text" id="filterSubject" placeholder="e.g., Math, Science">
+      </div>
+
+      <div class="filter-group">
+        <h3>Hourly Rate ($)</h3>
+        <label>Min:
+          <input type="number" id="filterMinRate" placeholder="Min rate" min="0">
+        </label>
+        <label>Max:
+          <input type="number" id="filterMaxRate" placeholder="Max rate" min="0">
+        </label>
+      </div>
+
+      <div class="filter-group">
+        <h3>Rating</h3>
+        <label>
+          <input type="checkbox" id="filter4Stars" value="4"> 4★ & above
+        </label>
+        <label>
+          <input type="checkbox" id="filter3Stars" value="3"> 3★ & above
+        </label>
+      </div>
+
+      <button class="filter-btn" onclick="applyFilters()">Apply Filters</button>
+      <button class="reset-btn" onclick="resetFilters()">Reset</button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Search Section -->
+      <div class="search-section">
+        <div class="search-bar">
+          <input type="text" id="searchInput" placeholder="Search tutors by name or subject...">
+          <button onclick="searchTutors()">Search</button>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div>
+        <div class="results-header" style="margin-bottom: 20px;">
+          <div class="results-count">
+            Found <span id="tutorCount">0</span> tutors
+          </div>
+          <div class="sort-options">
+            <button class="sort-btn active" onclick="sortTutors('rating')">Top Rated</button>
+            <button class="sort-btn" onclick="sortTutors('price-low')">Price: Low to High</button>
+            <button class="sort-btn" onclick="sortTutors('price-high')">Price: High to Low</button>
+          </div>
+        </div>
+
+        <!-- Tutors Grid -->
+        <div id="tutorsContainer" class="tutors-grid">
+          <div class="loading">Loading tutors...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/tutors.js"></script>
+  <script>
+    let allTutors = [];
+    let currentSort = 'rating';
+
+    // Check if logged in
+    window.addEventListener('DOMContentLoaded', () => {
+      requireAuth();
+      const userRole = getUserRole();
+      document.getElementById('userNameLink').textContent = userRole === 'tutor' ? 'My Profile' : 'My Bookings';
+      loadTutors();
+    });
+
+    // Load all tutors
+    async function loadTutors() {
+      try {
+        const data = await getAllTutors();
+        allTutors = data.tutors || [];
+        renderTutors(allTutors);
+      } catch (error) {
+        document.getElementById('tutorsContainer').innerHTML = `
+          <div class="empty-state">
+            <h3>Error loading tutors</h3>
+            <p>${error.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    // Render tutors in grid
+    function renderTutors(tutors) {
+      const container = document.getElementById('tutorsContainer');
+      const count = document.getElementById('tutorCount');
+
+      if (!tutors || tutors.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <h3>No tutors found</h3>
+            <p>Try adjusting your filters or search criteria</p>
+          </div>
+        `;
+        count.textContent = '0';
+        return;
+      }
+
+      count.textContent = tutors.length;
+
+      container.innerHTML = tutors.map(tutor => `
+        <div class="tutor-card" onclick="viewTutor('${tutor._id}')">
+          <div class="tutor-header">
+            <div class="tutor-avatar">👨‍🏫</div>
+            <div class="tutor-name">${tutor.firstName} ${tutor.lastName}</div>
+            <div class="tutor-title"> ${tutor.subjects.join(', ') || 'Tutor'}</div>
+          </div>
+          <div class="tutor-body">
+            <div class="tutor-subjects">
+              ${tutor.subjects.slice(0, 3).map(s => `<span class="subject-tag">${s}</span>`).join('')}
+            </div>
+            <div class="tutor-bio">${tutor.bio || 'Experienced tutor'}</div>
+            <div class="tutor-rating">${createStarRating(tutor.ratings, tutor.totalReviews)}</div>
+            <div class="tutor-footer">
+              <span class="tutor-rate">$${tutor.hourlyRate}/hr</span>
+              <button class="view-btn">View Profile</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Redirect to tutor profile
+    function viewTutor(tutorId) {
+      window.location.href = `tutor-profile.html?id=${tutorId}`;
+    }
+
+    // Apply filters
+    async function applyFilters() {
+      const subject = document.getElementById('filterSubject').value;
+      const minRate = document.getElementById('filterMinRate').value;
+      const maxRate = document.getElementById('filterMaxRate').value;
+      const min4Stars = document.getElementById('filter4Stars').checked;
+      const min3Stars = document.getElementById('filter3Stars').checked;
+
+      const filters = {
+        subject,
+        minRate,
+        maxRate,
+        minRating: min4Stars ? 4 : min3Stars ? 3 : 0,
+      };
+
+      try {
+        const data = await getAllTutors(filters);
+        allTutors = data.tutors || [];
+        sortAndRender();
+      } catch (error) {
+        alert('Error applying filters: ' + error.message);
+      }
+    }
+
+    // Reset filters
+    function resetFilters() {
+      document.getElementById('filterSubject').value = '';
+      document.getElementById('filterMinRate').value = '';
+      document.getElementById('filterMaxRate').value = '';
+      document.getElementById('filter4Stars').checked = false;
+      document.getElementById('filter3Stars').checked = false;
+      document.getElementById('searchInput').value = '';
+      loadTutors();
+    }
+
+    // Search tutors
+    async function searchTutors() {
+      const query = document.getElementById('searchInput').value.trim();
+      if (!query) {
+        loadTutors();
+        return;
+      }
+
+      try {
+        const data = await searchTutorsBySubject(query);
+        allTutors = data.tutors || [];
+        sortAndRender();
+      } catch (error) {
+        document.getElementById('tutorsContainer').innerHTML = `
+          <div class="empty-state">
+            <h3>No results found</h3>
+            <p>Try a different search term</p>
+          </div>
+        `;
+      }
+    }
+
+    // Sort tutors
+    function sortTutors(sortType) {
+      currentSort = sortType;
+      document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      sortAndRender();
+    }
+
+    // Sort and render
+    function sortAndRender() {
+      let sorted = [...allTutors];
+
+      if (currentSort === 'rating') {
+        sorted.sort((a, b) => b.ratings - a.ratings);
+      } else if (currentSort === 'price-low') {
+        sorted.sort((a, b) => a.hourlyRate - b.hourlyRate);
+      } else if (currentSort === 'price-high') {
+        sorted.sort((a, b) => b.hourlyRate - a.hourlyRate);
+      }
+
+      renderTutors(sorted);
+    }
+  </script>
+</body>
+</html>
