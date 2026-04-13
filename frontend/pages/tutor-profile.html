@@ -504,8 +504,11 @@
 
     // Book session
     function bookSession() {
-      alert('Booking feature coming soon! You can book a session with ' + tutorData.firstName + '.');
-      // In Step 3, this will redirect to booking page
+      if (getUserRole() !== 'student') {
+        alert('Only students can book sessions. Please log in as a student to book.');
+        return;
+      }
+      window.location.href = `booking.html?id=${tutorId}`;
     }
 
     // Send message

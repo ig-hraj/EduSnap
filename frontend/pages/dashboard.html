@@ -346,9 +346,9 @@
       <div class="section">
         <div class="section-header">
           <div class="section-title">📅 Upcoming Sessions</div>
-          <a href="tutor-list.html" class="section-link">Browse Tutors</a>
+          <a href="booking-history.html" class="section-link">View All</a>
         </div>
-        <div class="section-body">
+        <div class="section-body" id="upcomingBookings">
           <div class="empty-state">
             <div class="empty-state-icon">📭</div>
             <h3>No upcoming sessions</h3>
@@ -367,7 +367,9 @@
             <a href="tutor-list.html" style="text-decoration: none;">
               <button style="width: 100%; padding: 15px; background: #667eea; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Find a Tutor</button>
             </a>
-            <button onclick="alert('Coming soon!')" style="width: 100%; padding: 15px; background: #f0f0f0; color: #333; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">View Feedback</button>
+            <a href="booking-history.html" style="text-decoration: none;">
+              <button style="width: 100%; padding: 15px; background: #f0f0f0; color: #333; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">My Bookings</button>
+            </a>
             <button onclick="alert('Coming soon!')" style="width: 100%; padding: 15px; background: #f0f0f0; color: #333; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">My Reviews</button>
           </div>
         </div>
@@ -449,8 +451,9 @@
       <div class="section">
         <div class="section-header">
           <div class="section-title">👨‍🎓 Upcoming Sessions</div>
+          <a href="booking-history.html" class="section-link">View All</a>
         </div>
-        <div class="section-body">
+        <div class="section-body" id="tutorUpcomingSessions">
           <div class="empty-state">
             <div class="empty-state-icon">📭</div>
             <h3>No upcoming sessions yet</h3>
@@ -468,7 +471,9 @@
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
             <button onclick="editProfile()" style="padding: 15px; background: #667eea; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Edit Profile</button>
             <button onclick="editAvailability()" style="padding: 15px; background: #f0f0f0; color: #333; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Update Availability</button>
-            <button onclick="alert('Coming soon!')" style="padding: 15px; background: #f0f0f0; color: #333; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">View Reviews</button>
+            <a href="booking-history.html" style="text-decoration: none;">
+              <button style="padding: 15px; background: #f0f0f0; color: #333; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">My Sessions</button>
+            </a>
           </div>
         </div>
       </div>
@@ -477,6 +482,7 @@
 
   <script src="../js/auth.js"></script>
   <script src="../js/tutors.js"></script>
+  <script src="../js/bookings.js"></script>
   <script>
     let userRole = null;
     let userData = null;
@@ -498,16 +504,51 @@
     }
 
     // Student Dashboard
-    function renderStudentDashboard() {
+    async function renderStudentDashboard() {
       document.getElementById('pageTitle').textContent = 'Welcome, Student!';
       document.getElementById('pageSubtitle').textContent = 'Manage your learning sessions and tutors';
 
       document.getElementById('navLink1').textContent = 'My Bookings';
+      document.getElementById('navLink1').href = 'booking-history.html';
       document.getElementById('navLink2').textContent = 'Find Tutors';
       document.getElementById('navLink2').href = 'tutor-list.html';
 
       document.getElementById('studentView').style.display = 'block';
       document.getElementById('tutorView').style.display = 'none';
+
+      // Load bookings
+      try {
+        const response = await getUpcomingBookings();
+        const bookings = response.bookings || [];
+        
+        document.getElementById('totalSessions').textContent = bookings.length;
+        document.getElementById('upcomingSessions').textContent = bookings.length;
+
+        if (bookings.length > 0) {
+          const bookingsHtml = bookings.slice(0, 3).map(booking => `
+            <div class="booking-card">
+              <div class="booking-info">
+                <h4>${booking.tutorName} - ${booking.subject}</h4>
+                <p>📅 ${formatDate(booking.sessionDate)}</p>
+                <p class="booking-time">🕐 ${formatTime(booking.startTime)} - ${formatTime(booking.endTime)}</p>
+              </div>
+              <div style="font-size: 13px; text-align: center;">
+                <p style="color: #667eea; font-weight: 600; margin-bottom: 8px;">$${booking.totalPrice.toFixed(2)}</p>
+                <p style="color: #999;">Duration: ${calculateDuration(booking.startTime, booking.endTime).toFixed(1)} hrs</p>
+              </div>
+              <div class="booking-action">
+                <a href="booking-history.html" style="text-decoration: none;">
+                  <button class="btn-small btn-secondary-small">Manage</button>
+                </a>
+              </div>
+            </div>
+          `).join('');
+          
+          document.getElementById('upcomingBookings').innerHTML = bookingsHtml;
+        }
+      } catch (error) {
+        console.error('Error loading bookings:', error);
+      }
     }
 
     // Tutor Dashboard
@@ -516,6 +557,7 @@
       document.getElementById('pageSubtitle').textContent = 'Manage your profile and sessions';
 
       document.getElementById('navLink1').textContent = 'My Sessions';
+      document.getElementById('navLink1').href = 'booking-history.html';
       document.getElementById('navLink2').textContent = 'My Students';
 
       document.getElementById('tutorView').style.display = 'block';
@@ -552,6 +594,34 @@
             </div>
           `)
           .join('');
+
+        // Load tutor's bookings
+        const bookingsRes = await getMyBookings();
+        const bookings = bookingsRes.bookings || [];
+        const upcomingBookings = bookings.filter(b => b.status === 'confirmed');
+
+        if (upcomingBookings.length > 0) {
+          const bookingsHtml = upcomingBookings.slice(0, 3).map(booking => `
+            <div class="booking-card">
+              <div class="booking-info">
+                <h4>${booking.studentName} - ${booking.subject}</h4>
+                <p>📅 ${formatDate(booking.sessionDate)}</p>
+                <p class="booking-time">🕐 ${formatTime(booking.startTime)} - ${formatTime(booking.endTime)}</p>
+              </div>
+              <div style="font-size: 13px; text-align: center;">
+                <p style="color: #667eea; font-weight: 600; margin-bottom: 8px;">$${booking.totalPrice.toFixed(2)}</p>
+                <p style="color: #999;">Duration: ${calculateDuration(booking.startTime, booking.endTime).toFixed(1)} hrs</p>
+              </div>
+              <div class="booking-action">
+                <a href="booking-history.html" style="text-decoration: none;">
+                  <button class="btn-small btn-secondary-small">View Details</button>
+                </a>
+              </div>
+            </div>
+          `).join('');
+          
+          document.getElementById('tutorUpcomingSessions').innerHTML = bookingsHtml;
+        }
       } catch (error) {
         console.error('Error loading tutor profile:', error);
       }

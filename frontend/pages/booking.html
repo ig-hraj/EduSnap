@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book a Session - EduSnap</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+    }
+
+    /* Header */
+    .header {
+      background: white;
+      padding: 20px 0;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      cursor: pointer;
+    }
+
+    .header-links {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .header-links a {
+      text-decoration: none;
+      color: #666;
+      font-size: 14px;
+      transition: color 0.3s;
+      cursor: pointer;
+    }
+
+    .header-links a:hover {
+      color: #667eea;
+    }
+
+    .logout-btn {
+      background: #e74c3c;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+      margin-bottom: 30px;
+      color: #999;
+      font-size: 14px;
+    }
+
+    .breadcrumb a {
+      color: #667eea;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+
+    /* Main Layout */
+    .booking-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+
+    /* Booking Form */
+    .booking-form {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 10px;
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 5px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .form-row .form-group {
+      margin-bottom: 0;
+    }
+
+    .error-message {
+      color: #e74c3c;
+      font-size: 13px;
+      margin-top: 5px;
+      padding: 8px;
+      background: #fadbd8;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .success-message {
+      color: #27ae60;
+      font-size: 13px;
+      margin-top: 5px;
+      padding: 8px;
+      background: #d5f4e6;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .booking-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .booking-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .booking-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Tutor Summary */
+    .tutor-summary {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      height: fit-content;
+    }
+
+    .tutor-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    .tutor-avatar {
+      font-size: 60px;
+      margin-bottom: 15px;
+    }
+
+    .tutor-name {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .tutor-subject {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .tutor-details {
+      padding: 25px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      color: #666;
+    }
+
+    .detail-value {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .session-breakdown {
+      background: #f9fafb;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+      font-size: 13px;
+    }
+
+    .breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .breakdown-row:last-child {
+      margin-bottom: 0;
+      padding-top: 10px;
+      border-top: 1px solid #ddd;
+      font-weight: 600;
+      color: #667eea;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .error {
+      background: #fadbd8;
+      color: #c0392b;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .booking-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .tutor-summary {
+        height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="logo" onclick="window.location.href='/'">📚 EduSnap</div>
+      <div class="header-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="tutor-list.html">← Back</a>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Container -->
+  <div class="container">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="/">Home</a> / <a href="tutor-list.html">Find Tutors</a> / <span>Book Session</span>
+    </div>
+
+    <!-- Main Layout -->
+    <div id="bookingContent" class="booking-layout" style="display: none;">
+      <!-- Booking Form -->
+      <div class="booking-form">
+        <div class="form-title">Book a Session</div>
+
+        <form id="bookingForm" onsubmit="submitBooking(event)">
+          <!-- Subject -->
+          <div class="form-group">
+            <label for="subject">Subject *</label>
+            <input type="text" id="subject" placeholder="e.g., Algebra" required>
+          </div>
+
+          <!-- Date -->
+          <div class="form-group">
+            <label for="sessionDate">Session Date *</label>
+            <input type="date" id="sessionDate" required>
+          </div>
+
+          <!-- Time -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="startTime">Start Time *</label>
+              <input type="time" id="startTime" required>
+            </div>
+            <div class="form-group">
+              <label for="endTime">End Time *</label>
+              <input type="time" id="endTime" required>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="form-group">
+            <label for="notes">Notes (Optional)</label>
+            <textarea id="notes" placeholder="Any specific topics or requirements?"></textarea>
+          </div>
+
+          <!-- Messages -->
+          <div class="error-message" id="errorMessage"></div>
+          <div class="success-message" id="successMessage"></div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="booking-btn" id="submitBtn">Confirm Booking</button>
+        </form>
+      </div>
+
+      <!-- Tutor Summary -->
+      <div class="tutor-summary">
+        <div class="tutor-header">
+          <div class="tutor-avatar">👨‍🏫</div>
+          <div class="tutor-name" id="tutorName">-</div>
+          <div class="tutor-subject" id="tutorSubjects">-</div>
+        </div>
+        <div class="tutor-details">
+          <div class="detail-row">
+            <span class="detail-label">Hourly Rate</span>
+            <span class="detail-value" id="tutorRate">-</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Rating</span>
+            <span class="detail-value" id="tutorRating">-</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Experience</span>
+            <span class="detail-value" id="tutorReviews">-</span>
+          </div>
+
+          <!-- Session Breakdown -->
+          <div class="session-breakdown">
+            <div style="margin-bottom: 10px; color: #666;">Session Breakdown:</div>
+            <div class="breakdown-row">
+              <span>Duration</span>
+              <span id="breakdownDuration">-- hrs</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Rate</span>
+              <span id="breakdownRate">$-- /hr</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Total Price</span>
+              <span id="totalPrice">$--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="loading">
+      Loading tutor information...
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" style="display: none;">
+      <div class="error">
+        <h3>Error</h3>
+        <p id="errorText">Unable to load tutor profile.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/tutors.js"></script>
+  <script src="../js/bookings.js"></script>
+  <script>
+    let tutorId = null;
+    let tutorData = null;
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', async () => {
+      requireAuth();
+
+      if (getUserRole() !== 'student') {
+        showError('Only students can book sessions');
+        return;
+      }
+
+      // Get tutor ID from URL
+      const params = new URLSearchParams(window.location.search);
+      tutorId = params.get('id');
+
+      if (!tutorId) {
+        showError('No tutor selected');
+        return;
+      }
+
+      await loadTutorInfo();
+      setMinDate();
+    });
+
+    // Load tutor info
+    async function loadTutorInfo() {
+      try {
+        const response = await getTutorById(tutorId);
+        tutorData = response.tutor;
+        renderTutorSummary();
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('bookingContent').style.display = 'grid';
+      } catch (error) {
+        showError(error.message);
+      }
+    }
+
+    // Render tutor summary
+    function renderTutorSummary() {
+      document.getElementById('tutorName').textContent = `${tutorData.firstName} ${tutorData.lastName}`;
+      document.getElementById('tutorSubjects').textContent = tutorData.subjects.join(', ');
+      document.getElementById('tutorRate').textContent = `$${tutorData.hourlyRate}/hour`;
+      document.getElementById('tutorRating').textContent = tutorData.ratings ? `${tutorData.ratings.toFixed(1)} ⭐` : 'New Tutor';
+      document.getElementById('tutorReviews').textContent = `${tutorData.totalReviews || 0} reviews`;
+
+      // Set breakdown rate
+      document.getElementById('breakdownRate').textContent = `$${tutorData.hourlyRate} /hr`;
+    }
+
+    // Set minimum date to today
+    function setMinDate() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('sessionDate').setAttribute('min', today);
+    }
+
+    // Calculate and update price
+    document.getElementById('startTime').addEventListener('change', updatePrice);
+    document.getElementById('endTime').addEventListener('change', updatePrice);
+
+    function updatePrice() {
+      const startTime = document.getElementById('startTime').value;
+      const endTime = document.getElementById('endTime').value;
+
+      if (!startTime || !endTime) return;
+
+      const duration = calculateDuration(startTime, endTime);
+      if (duration <= 0) {
+        document.getElementById('breakdownDuration').textContent = 'Invalid';
+        return;
+      }
+
+      const totalPrice = calculatePrice(tutorData.hourlyRate, duration);
+      document.getElementById('breakdownDuration').textContent = `${duration.toFixed(1)} hrs`;
+      document.getElementById('totalPrice').textContent = `$${totalPrice.toFixed(2)}`;
+    }
+
+    // Submit booking
+    async function submitBooking(event) {
+      event.preventDefault();
+
+      const subject = document.getElementById('subject').value;
+      const sessionDate = document.getElementById('sessionDate').value;
+      const startTime = document.getElementById('startTime').value;
+      const endTime = document.getElementById('endTime').value;
+      const notes = document.getElementById('notes').value;
+
+      const errorMsg = document.getElementById('errorMessage');
+      const successMsg = document.getElementById('successMessage');
+      const submitBtn = document.getElementById('submitBtn');
+
+      errorMsg.style.display = 'none';
+      successMsg.style.display = 'none';
+
+      try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Booking...';
+
+        const bookingData = {
+          tutorId,
+          subject,
+          sessionDate,
+          startTime,
+          endTime,
+          notes,
+        };
+
+        const response = await createBooking(bookingData);
+
+        successMsg.textContent = `✓ Booking confirmed! Session scheduled for ${formatDate(sessionDate)} at ${formatTime(startTime)}`;
+        successMsg.style.display = 'block';
+
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 2000);
+      } catch (error) {
+        errorMsg.textContent = '✗ ' + error.message;
+        errorMsg.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Confirm Booking';
+      }
+    }
+
+    // Show error
+    function showError(message) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('bookingContent').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
+      document.getElementById('errorText').textContent = message;
+    }
+  </script>
+</body>
+</html>

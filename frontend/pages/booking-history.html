@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking History - EduSnap</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+    }
+
+    /* Header */
+    .header {
+      background: white;
+      padding: 20px 0;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      cursor: pointer;
+    }
+
+    .header-links {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .header-links a {
+      text-decoration: none;
+      color: #666;
+      font-size: 14px;
+      transition: color 0.3s;
+      cursor: pointer;
+    }
+
+    .header-links a:hover {
+      color: #667eea;
+    }
+
+    .logout-btn {
+      background: #e74c3c;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+      margin-bottom: 30px;
+      color: #999;
+      font-size: 14px;
+    }
+
+    .breadcrumb a {
+      color: #667eea;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+
+    /* Page Header */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+      border-bottom: 2px solid #e9ecef;
+    }
+
+    .tab-btn {
+      padding: 12px 20px;
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .tab-btn.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-btn:hover {
+      color: #667eea;
+    }
+
+    /* Booking Card */
+    .booking-card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: start;
+      transition: box-shadow 0.3s;
+    }
+
+    .booking-card:hover {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .booking-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 12px;
+    }
+
+    .booking-avatar {
+      font-size: 40px;
+    }
+
+    .booking-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .booking-subject {
+      color: #667eea;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .booking-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      margin: 12px 0;
+    }
+
+    .info-item {
+      font-size: 13px;
+    }
+
+    .info-label {
+      color: #999;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .info-value {
+      color: #333;
+      font-weight: 600;
+    }
+
+    /* Status Badge */
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-confirmed {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .status-completed {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-cancelled {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    /* Actions */
+    .booking-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .action-btn {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: white;
+      color: #666;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+
+    .action-btn:hover {
+      background: #f5f5f5;
+      border-color: #999;
+    }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+    }
+
+    .action-btn.primary:hover {
+      transform: translateY(-2px);
+    }
+
+    .action-btn.danger {
+      color: #e74c3c;
+      border-color: #e74c3c;
+    }
+
+    .action-btn.danger:hover {
+      background: #fadbd8;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .empty-icon {
+      font-size: 60px;
+      margin-bottom: 15px;
+    }
+
+    .empty-text {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .empty-subtext {
+      font-size: 14px;
+      color: #bbb;
+    }
+
+    /* Modals */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+
+    .modal-body {
+      margin-bottom: 20px;
+    }
+
+    .modal-form-group {
+      margin-bottom: 15px;
+    }
+
+    .modal-form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #333;
+    }
+
+    .modal-form-group input,
+    .modal-form-group textarea,
+    .modal-form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .modal-form-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .modal-btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .modal-btn.cancel {
+      background: #f0f0f0;
+      color: #666;
+    }
+
+    .modal-btn.cancel:hover {
+      background: #e0e0e0;
+    }
+
+    .modal-btn.confirm {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .modal-btn.confirm:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Star Rating */
+    .star-rating {
+      display: flex;
+      gap: 8px;
+      font-size: 24px;
+    }
+
+    .star {
+      cursor: pointer;
+      color: #ddd;
+      transition: color 0.2s;
+    }
+
+    .star.active,
+    .star:hover {
+      color: #ffc107;
+    }
+
+    .message {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      display: none;
+      font-size: 13px;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      display: block;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .booking-card {
+        grid-template-columns: 1fr;
+      }
+
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+
+      .booking-info {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="logo" onclick="window.location.href='/'">📚 EduSnap</div>
+      <div class="header-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="tutor-list.html">Find Tutors</a>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Container -->
+  <div class="container">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="/">Home</a> / <a href="dashboard.html">Dashboard</a> / <span>My Bookings</span>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-title">My Bookings</div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('upcoming')">📅 Upcoming</button>
+      <button class="tab-btn" onclick="switchTab('completed')">✓ Completed</button>
+      <button class="tab-btn" onclick="switchTab('cancelled')">✗ Cancelled</button>
+    </div>
+
+    <!-- Upcoming Bookings -->
+    <div id="upcomingTab" class="tab-content">
+      <div id="upcomingBookings"></div>
+    </div>
+
+    <!-- Completed Bookings -->
+    <div id="completedTab" class="tab-content" style="display: none;">
+      <div id="completedBookings"></div>
+    </div>
+
+    <!-- Cancelled Bookings -->
+    <div id="cancelledTab" class="tab-content" style="display: none;">
+      <div id="cancelledBookings"></div>
+    </div>
+  </div>
+
+  <!-- Cancel Modal -->
+  <div id="cancelModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title">Cancel Booking</div>
+      <div class="modal-body">
+        <p style="color: #666; font-size: 14px;">Are you sure you want to cancel this booking? Please provide a reason.</p>
+      </div>
+      <div class="modal-form-group">
+        <label for="cancelReason">Reason for Cancellation</label>
+        <textarea id="cancelReason" placeholder="Tell the tutor why you're cancelling..."></textarea>
+      </div>
+      <div id="cancelMessage" class="message"></div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeModal('cancelModal')">Keep Booking</button>
+        <button class="modal-btn confirm" onclick="confirmCancel()">Cancel Booking</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feedback Modal -->
+  <div id="feedbackModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title">Rate Your Tutor</div>
+      <div class="modal-body">
+        <p style="color: #666; font-size: 14px; margin-bottom: 15px;">How was your session with <strong id="feedbackTutorName">-</strong>?</p>
+        <div class="modal-form-group">
+          <label>Rating</label>
+          <div class="star-rating" id="starRating">
+            <span class="star" onclick="setRating(1)">⭐</span>
+            <span class="star" onclick="setRating(2)">⭐</span>
+            <span class="star" onclick="setRating(3)">⭐</span>
+            <span class="star" onclick="setRating(4)">⭐</span>
+            <span class="star" onclick="setRating(5)">⭐</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-form-group">
+        <label for="feedbackText">Your Feedback</label>
+        <textarea id="feedbackText" placeholder="Share your experience with this tutor..."></textarea>
+      </div>
+      <div id="feedbackMessage" class="message"></div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeModal('feedbackModal')">Skip</button>
+        <button class="modal-btn confirm" onclick="submitFeedback()">Submit Feedback</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script src="../js/bookings.js"></script>
+  <script>
+    let currentBookingId = null;
+    let currentRating = 0;
+    let bookings = [];
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      requireAuth();
+      await loadBookings();
+    });
+
+    async function loadBookings() {
+      try {
+        const response = await getMyBookings();
+        bookings = response.bookings || [];
+        renderBookings();
+      } catch (error) {
+        console.error('Error loading bookings:', error);
+      }
+    }
+
+    function renderBookings() {
+      const upcoming = bookings.filter(b => b.status === 'confirmed');
+      const completed = bookings.filter(b => b.status === 'completed');
+      const cancelled = bookings.filter(b => b.status === 'cancelled');
+
+      renderBookingList('upcomingBookings', upcoming);
+      renderBookingList('completedBookings', completed);
+      renderBookingList('cancelledBookings', cancelled);
+    }
+
+    function renderBookingList(containerId, bookings) {
+      const container = document.getElementById(containerId);
+
+      if (bookings.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <div class="empty-text">No bookings yet</div>
+            <div class="empty-subtext">Book a session to get started</div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = bookings.map(booking => `
+        <div class="booking-card">
+          <div>
+            <div class="booking-header">
+              <div class="booking-avatar">👨‍🏫</div>
+              <div>
+                <div class="booking-title">${booking.tutorName}</div>
+                <div class="booking-subject">${booking.subject}</div>
+              </div>
+              <span class="status-badge status-${booking.status.toLowerCase()}">${getStatusText(booking.status)}</span>
+            </div>
+            <div class="booking-info">
+              <div class="info-item">
+                <div class="info-label">📅 Date</div>
+                <div class="info-value">${formatDate(booking.sessionDate)}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">🕐 Time</div>
+                <div class="info-value">${formatTime(booking.startTime)} - ${formatTime(booking.endTime)}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">⏱️ Duration</div>
+                <div class="info-value">${calculateDuration(booking.startTime, booking.endTime).toFixed(1)} hrs</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">💰 Price</div>
+                <div class="info-value">$${booking.totalPrice.toFixed(2)}</div>
+              </div>
+            </div>
+            ${booking.notes ? `<div style="color: #666; font-size: 13px; margin-top: 10px;">📝 Notes: ${booking.notes}</div>` : ''}
+          </div>
+          <div class="booking-actions">
+            ${booking.status === 'confirmed' ? `
+              <button class="action-btn danger" onclick="openCancelModal('${booking._id}')">Cancel</button>
+            ` : ''}
+            ${booking.status === 'completed' && !booking.rating ? `
+              <button class="action-btn primary" onclick="openFeedbackModal('${booking._id}', '${booking.tutorName}')">Leave Feedback</button>
+            ` : ''}
+            ${booking.rating ? `
+              <div style="font-size: 12px; color: #667eea; font-weight: 600; padding: 8px;">
+                ⭐ ${booking.rating}/5 - Feedback given
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function switchTab(tab) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+      // Show selected tab
+      const tabId = tab === 'upcoming' ? 'upcomingTab' : tab === 'completed' ? 'completedTab' : 'cancelledTab';
+      document.getElementById(tabId).style.display = 'block';
+
+      // Mark button active
+      event.target.classList.add('active');
+    }
+
+    function openCancelModal(bookingId) {
+      currentBookingId = bookingId;
+      document.getElementById('cancelReason').value = '';
+      document.getElementById('cancelMessage').classList.remove('success', 'error');
+      document.getElementById('cancelMessage').textContent = '';
+      openModal('cancelModal');
+    }
+
+    async function confirmCancel() {
+      const reason = document.getElementById('cancelReason').value;
+      const msgDiv = document.getElementById('cancelMessage');
+
+      if (!reason.trim()) {
+        msgDiv.classList.remove('success');
+        msgDiv.classList.add('error');
+        msgDiv.textContent = '✗ Please provide a reason for cancellation';
+        return;
+      }
+
+      try {
+        await cancelBooking(currentBookingId, reason);
+        msgDiv.classList.remove('error');
+        msgDiv.classList.add('success');
+        msgDiv.textContent = '✓ Booking cancelled successfully';
+        setTimeout(() => {
+          closeModal('cancelModal');
+          loadBookings();
+        }, 1500);
+      } catch (error) {
+        msgDiv.classList.remove('success');
+        msgDiv.classList.add('error');
+        msgDiv.textContent = '✗ ' + error.message;
+      }
+    }
+
+    function openFeedbackModal(bookingId, tutorName) {
+      currentBookingId = bookingId;
+      currentRating = 0;
+      document.getElementById('feedbackTutorName').textContent = tutorName;
+      document.getElementById('feedbackText').value = '';
+      document.querySelectorAll('#starRating .star').forEach(s => s.classList.remove('active'));
+      document.getElementById('feedbackMessage').classList.remove('success', 'error');
+      document.getElementById('feedbackMessage').textContent = '';
+      openModal('feedbackModal');
+    }
+
+    function setRating(rating) {
+      currentRating = rating;
+      document.querySelectorAll('#starRating .star').forEach((star, idx) => {
+        if (idx < rating) {
+          star.classList.add('active');
+        } else {
+          star.classList.remove('active');
+        }
+      });
+    }
+
+    async function submitFeedback() {
+      const feedback = document.getElementById('feedbackText').value;
+      const msgDiv = document.getElementById('feedbackMessage');
+
+      if (currentRating === 0) {
+        msgDiv.classList.remove('success');
+        msgDiv.classList.add('error');
+        msgDiv.textContent = '✗ Please select a star rating';
+        return;
+      }
+
+      try {
+        await addFeedback(currentBookingId, currentRating, feedback);
+        msgDiv.classList.remove('error');
+        msgDiv.classList.add('success');
+        msgDiv.textContent = '✓ Thank you for your feedback!';
+        setTimeout(() => {
+          closeModal('feedbackModal');
+          loadBookings();
+        }, 1500);
+      } catch (error) {
+        msgDiv.classList.remove('success');
+        msgDiv.classList.add('error');
+        msgDiv.textContent = '✗ ' + error.message;
+      }
+    }
+
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('active');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    // Close modal on background click
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

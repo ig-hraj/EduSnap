@@ -4,6 +4,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const tutorRoutes = require('./routes/tutors');
+const bookingRoutes = require('./routes/bookings');
 
 // Initialize Express app
 const app = express();
@@ -21,6 +22,7 @@ connectDB();
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tutors', tutorRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
