@@ -553,6 +553,9 @@
 
   <script src="../js/auth.js"></script>
   <script src="../js/bookings.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script src="../js/socket.js"></script>
   <script>
     let currentBookingId = null;
     let currentRating = 0;
@@ -561,6 +564,12 @@
     window.addEventListener('DOMContentLoaded', async () => {
       requireAuth();
       await loadBookings();
+      
+      // Initialize Socket.IO
+      setTimeout(() => {
+        initSocket();
+        setupHistorySocketListeners();
+      }, 500);
     });
 
     async function loadBookings() {
@@ -758,6 +767,33 @@
         }
       });
     });
+
+    // Setup Socket.IO listeners for booking history
+    function setupHistorySocketListeners() {
+      // Listen for booking status changes
+      onSocket('booking:status-changed', (data) => {
+        console.log('🔄 Booking status changed:', data);
+        showInfo('Session Update', 'A booking status has been updated');
+        loadBookings(); // Reload bookings
+      });
+
+      // Listen for dashboard updates (booking cancel, etc)
+      onSocket('dashboard:updated', (data) => {
+        console.log('📊 Dashboard updated:', data);
+        loadBookings(); // Reload bookings
+      });
+
+      // Listen for booking cancellation
+      onSocket('dashboard:booking-cancelled', (data) => {
+        console.log('❌ Booking cancelled:', data);
+        loadBookings(); // Reload bookings
+      });
+
+      // Listen for notifications
+      onSocket('notification:received', (notification) => {
+        console.log('🔔 Notification:', notification);
+      });
+    }
   </script>
 </body>
 </html>

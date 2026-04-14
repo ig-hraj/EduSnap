@@ -1,13 +1,16 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const http = require('http');
 const connectDB = require('./config/db');
+const { setupSocket } = require('./config/socket-config');
 const authRoutes = require('./routes/auth');
 const tutorRoutes = require('./routes/tutors');
 const bookingRoutes = require('./routes/bookings');
 
 // Initialize Express app
 const app = express();
+const server = http.createServer(app);
 
 // Middleware
 app.use(cors());
@@ -34,9 +37,16 @@ app.get('*', (req, res) => {
   res.sendFile(__dirname + '/../frontend/index.html');
 });
 
+// Initialize Socket.IO
+const io = setupSocket(server);
+
+// Make io available to routes
+app.set('io', io);
+
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`\n🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📚 Tutor Booking System Backend\n`);
+  console.log(`📚 Tutor Booking System Backend`);
+  console.log(`⚡ Socket.IO enabled for real-time updates\n`);
 });

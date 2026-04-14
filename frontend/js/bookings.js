@@ -19,7 +19,23 @@ const createBooking = async (bookingData) => {
       const error = await response.json();
       throw new Error(error.message || 'Failed to create booking');
     }
-    return await response.json();
+    
+    const result = await response.json();
+    const booking = result.booking;
+    
+    // Emit Socket.IO event
+    if (typeof emitBookingCreated === 'function') {
+      emitBookingCreated({
+        id: booking._id,
+        tutorId: booking.tutorId,
+        studentName: booking.studentName,
+        subject: booking.subject,
+        sessionDate: booking.sessionDate,
+        startTime: booking.startTime,
+      });
+    }
+    
+    return result;
   } catch (error) {
     console.error('Error creating booking:', error);
     throw error;
@@ -88,7 +104,16 @@ const cancelBooking = async (bookingId, reason = '') => {
     });
 
     if (!response.ok) throw new Error('Failed to cancel booking');
-    return await response.json();
+    
+    const result = await response.json();
+    const booking = result.booking;
+    
+    // Emit Socket.IO event
+    if (typeof emitBookingCancelled === 'function') {
+      emitBookingCancelled(bookingId, booking.tutorId, booking.studentId, reason);
+    }
+    
+    return result;
   } catch (error) {
     console.error('Error cancelling booking:', error);
     throw error;
@@ -109,7 +134,27 @@ const addFeedback = async (bookingId, rating, feedback) => {
     });
 
     if (!response.ok) throw new Error('Failed to add feedback');
-    return await response.json();
+    
+    const result = await response.json();
+    const booking = result.booking;
+    
+    // Get student name for notification
+    try {
+      const authResponse = await fetch(`${API_URL}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const authData = await authResponse.json();
+      const studentName = `${authData.user.firstName} ${authData.user.lastName}`;
+      
+      // Emit Socket.IO event
+      if (typeof emitFeedbackSubmitted === 'function') {
+        emitFeedbackSubmitted(bookingId, booking.tutorId, studentName, rating, feedback);
+      }
+    } catch (e) {
+      console.error('Error getting student name for feedback:', e);
+    }
+    
+    return result;
   } catch (error) {
     console.error('Error adding feedback:', error);
     throw error;

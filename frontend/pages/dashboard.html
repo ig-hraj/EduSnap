@@ -483,6 +483,9 @@
   <script src="../js/auth.js"></script>
   <script src="../js/tutors.js"></script>
   <script src="../js/bookings.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script src="../js/socket.js"></script>
   <script>
     let userRole = null;
     let userData = null;
@@ -492,6 +495,12 @@
       requireAuth();
       userRole = getUserRole();
       renderDashboard();
+      
+      // Initialize Socket.IO
+      setTimeout(() => {
+        initSocket();
+        setupSocketListeners();
+      }, 500);
     });
 
     // Render dashboard based on user role
@@ -635,6 +644,150 @@
     // Edit availability
     function editAvailability() {
       alert('Availability editor coming soon!\nYou can set your weekly schedule to help students find the best times to book with you.');
+    }
+
+    // Setup Socket.IO listeners
+    function setupSocketListeners() {
+      // Listen for booking notifications
+      onSocket('notification:received', (notification) => {
+        console.log('🔔 Received notification:', notification);
+      });
+
+      // Listen for dashboard updates
+      onSocket('dashboard:updated', (data) => {
+        console.log('📊 Dashboard updated:', data);
+        // Reload bookings if relevant
+        if (userRole === 'student') {
+          reloadStudentBookings();
+        } else if (userRole === 'tutor') {
+          reloadTutorBookings();
+        }
+      });
+
+      // Listen for booking status changes
+      onSocket('booking:status-changed', (data) => {
+        console.log('🔄 Booking status changed:', data);
+        showSuccess('Session Update', 'A booking status has been updated');
+        if (userRole === 'student') {
+          reloadStudentBookings();
+        } else {
+          reloadTutorBookings();
+        }
+      });
+
+      // Listen for tutor rating updates
+      onSocket('tutor:rating-updated', (data) => {
+        console.log('⭐ Tutor rating updated:', data);
+        if (userRole === 'tutor' && data.tutorId === getUserId()) {
+          // Update tutor's rating display
+          if (document.getElementById('tutorRating')) {
+            // Refresh tutor profile to show updated rating
+            loadTutorProfile();
+          }
+        }
+      });
+    }
+
+    // Reload student bookings
+    async function reloadStudentBookings() {
+      try {
+        const response = await getUpcomingBookings();
+        const bookings = response.bookings || [];
+        
+        document.getElementById('totalSessions').textContent = bookings.length;
+        document.getElementById('upcomingSessions').textContent = bookings.length;
+
+        if (bookings.length > 0) {
+          const bookingsHtml = bookings.slice(0, 3).map(booking => `
+            <div class="booking-card">
+              <div class="booking-info">
+                <h4>${booking.tutorName} - ${booking.subject}</h4>
+                <p>📅 ${formatDate(booking.sessionDate)}</p>
+                <p class="booking-time">🕐 ${formatTime(booking.startTime)} - ${formatTime(booking.endTime)}</p>
+              </div>
+              <div style="font-size: 13px; text-align: center;">
+                <p style="color: #667eea; font-weight: 600; margin-bottom: 8px;">$${booking.totalPrice.toFixed(2)}</p>
+                <p style="color: #999;">Duration: ${calculateDuration(booking.startTime, booking.endTime).toFixed(1)} hrs</p>
+              </div>
+              <div class="booking-action">
+                <a href="booking-history.html" style="text-decoration: none;">
+                  <button class="btn-small btn-secondary-small">Manage</button>
+                </a>
+              </div>
+            </div>
+          `).join('');
+          
+          document.getElementById('upcomingBookings').innerHTML = bookingsHtml;
+        } else {
+          document.getElementById('upcomingBookings').innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <h3>No upcoming sessions</h3>
+              <p>Ready to start learning? <a href="tutor-list.html" style="color: #667eea; text-decoration: none;">Browse tutors</a> to book your first session!</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error reloading bookings:', error);
+      }
+    }
+
+    // Reload tutor bookings
+    async function reloadTutorBookings() {
+      try {
+        const bookingsRes = await getMyBookings();
+        const bookings = bookingsRes.bookings || [];
+        const upcomingBookings = bookings.filter(b => b.status === 'confirmed');
+
+        if (upcomingBookings.length > 0) {
+          const bookingsHtml = upcomingBookings.slice(0, 3).map(booking => `
+            <div class="booking-card">
+              <div class="booking-info">
+                <h4>${booking.studentName} - ${booking.subject}</h4>
+                <p>📅 ${formatDate(booking.sessionDate)}</p>
+                <p class="booking-time">🕐 ${formatTime(booking.startTime)} - ${formatTime(booking.endTime)}</p>
+              </div>
+              <div style="font-size: 13px; text-align: center;">
+                <p style="color: #667eea; font-weight: 600; margin-bottom: 8px;">$${booking.totalPrice.toFixed(2)}</p>
+                <p style="color: #999;">Duration: ${calculateDuration(booking.startTime, booking.endTime).toFixed(1)} hrs</p>
+              </div>
+              <div class="booking-action">
+                <a href="booking-history.html" style="text-decoration: none;">
+                  <button class="btn-small btn-secondary-small">View Details</button>
+                </a>
+              </div>
+            </div>
+          `).join('');
+          
+          document.getElementById('tutorUpcomingSessions').innerHTML = bookingsHtml;
+        } else {
+          document.getElementById('tutorUpcomingSessions').innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <h3>No upcoming sessions yet</h3>
+              <p>When students book sessions with you, they'll appear here.</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error reloading tutor bookings:', error);
+      }
+    }
+
+    // Load tutor profile
+    async function loadTutorProfile() {
+      try {
+        const response = await fetch(`http://localhost:5000/api/auth/me`, {
+          headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+        });
+        const data = await response.json();
+        userData = data.user;
+        const tutorRes = await getTutorById(userData.id);
+        const tutor = tutorRes.tutor;
+        document.getElementById('tutorRating').textContent = tutor.ratings ? tutor.ratings.toFixed(1) : '-';
+      } catch (error) {
+        console.error('Error loading tutor profile:', error);
+      }
     }
   </script>
 </body>
