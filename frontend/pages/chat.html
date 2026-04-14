@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Chat - EduSnap</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-header {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .chat-header-info {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .close-chat {
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 5px 10px;
+            transition: opacity 0.3s;
+        }
+
+        .close-chat:hover {
+            opacity: 0.7;
+        }
+
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 70%;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .own-message {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .other-message {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-header {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+            color: #666;
+        }
+
+        .own-message .message-header {
+            justify-content: flex-end;
+        }
+
+        .sender-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .sender-role {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tutor-role {
+            background: #667eea;
+            color: white;
+        }
+
+        .student-role {
+            background: #764ba2;
+            color: white;
+        }
+
+        .message-time {
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .own-message .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .other-message .message-content {
+            background: #e8e8e8;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+
+        .unread-indicator {
+            font-size: 0.8rem;
+            color: #667eea;
+            margin-top: 4px;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #999;
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .typing-indicator .dots {
+            animation: blink 1.4s infinite;
+        }
+
+        @keyframes blink {
+            0%, 20%, 50%, 80%, 100% {
+                opacity: 0.3;
+            }
+            40% {
+                opacity: 1;
+            }
+            60% {
+                opacity: 0.3;
+            }
+        }
+
+        .messages-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #999;
+        }
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .chat-input-area {
+            background: rgba(255, 255, 255, 0.1);
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .chat-input-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 0.95rem;
+            font-family: inherit;
+            resize: none;
+            max-height: 100px;
+            outline: none;
+            transition: background 0.3s;
+        }
+
+        .chat-input:focus {
+            background: white;
+            border-color: #667eea;
+        }
+
+        .char-count {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 4px;
+        }
+
+        .send-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, opacity 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+
+        .send-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .send-btn-text {
+            display: none;
+        }
+
+        .send-btn-icon {
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .message {
+                max-width: 85%;
+            }
+
+            .chat-container {
+                height: 80vh;
+            }
+
+            .send-btn-text {
+                display: inline;
+                margin-left: 5px;
+            }
+
+            .send-btn-icon {
+                display: none;
+            }
+        }
+
+        .no-messages {
+            text-align: center;
+            color: #999;
+            font-size: 0.95rem;
+            padding: 20px;
+        }
+
+        input[type="text"]::-webkit-input-placeholder,
+        textarea::-webkit-input-placeholder {
+            color: #bbb;
+        }
+
+        input[type="text"]:-moz-placeholder,
+        textarea:-moz-placeholder {
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>🎓 EduSnap - Session Chat</h1>
+        <button id="logoutBtn" class="btn">Logout</button>
+    </div>
+
+    <div class="container">
+        <div class="chat-container">
+            <div class="chat-header">
+                <div>
+                    <h2 id="chatTitle">Chat with Tutor</h2>
+                    <div class="chat-header-info" id="chatInfo">Loading...</div>
+                </div>
+                <div class="close-chat" title="Close Chat" onclick="window.history.back()">✕</div>
+            </div>
+
+            <div class="messages-area" id="messagesArea">
+                <div class="messages-loading">
+                    <div class="spinner"></div>
+                    Loading messages...
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <div class="chat-input-wrapper">
+                    <textarea 
+                        id="messageInput" 
+                        class="chat-input" 
+                        placeholder="Type your message..." 
+                        maxlength="1000"
+                        rows="1"
+                    ></textarea>
+                    <div class="char-count"><span id="charCount">0</span>/1000</div>
+                </div>
+                <button id="sendBtn" class="send-btn" title="Send message">
+                    <span class="send-btn-icon">📤</span>
+                    <span class="send-btn-text">Send</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/messages.js"></script>
+    <script src="../js/socket.js"></script>
+
+    <script>
+        let currentBookingId = null;
+        let currentUserId = null;
+        let userRole = null;
+        let otherUserName = null;
+        let allMessages = [];
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if user is logged in
+            if (!isLoggedIn()) {
+                redirectToLogin();
+                return;
+            }
+
+            // Get user info
+            currentUserId = getUserId();
+            userRole = getUserRole();
+
+            // Get booking ID from URL params
+            const urlParams = new URLSearchParams(window.location.search);
+            currentBookingId = urlParams.get('bookingId');
+
+            if (!currentBookingId) {
+                showNotification('Invalid booking ID', 'error');
+                setTimeout(() => window.history.back(), 2000);
+                return;
+            }
+
+            // Load messages
+            await loadMessages();
+
+            // Initialize Socket.IO if available
+            if (window.socket) {
+                initializeSocketListeners();
+            }
+
+            // Setup input event listeners
+            setupInputListeners();
+
+            // Setup logout
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+        });
+
+        /**
+         * Load messages from backend
+         */
+        async function loadMessages() {
+            const messagesArea = document.getElementById('messagesArea');
+            messagesArea.innerHTML = '<div class="messages-loading"><div class="spinner"></div>Loading messages...</div>';
+
+            const messages = await getMessages(currentBookingId);
+            allMessages = messages;
+
+            if (!messages || messages.length === 0) {
+                messagesArea.innerHTML = '<div class="no-messages">No messages yet. Start the conversation!</div>';
+                updateChatHeader();
+                return;
+            }
+
+            displayMessages(messages);
+            updateChatHeader();
+
+            // Scroll to bottom
+            setTimeout(() => {
+                messagesArea.scrollTop = messagesArea.scrollHeight;
+            }, 100);
+        }
+
+        /**
+         * Display messages in the chat area
+         */
+        function displayMessages(messages) {
+            const messagesArea = document.getElementById('messagesArea');
+            messagesArea.innerHTML = '';
+
+            if (messages.length === 0) {
+                messagesArea.innerHTML = '<div class="no-messages">No messages yet. Start the conversation!</div>';
+                return;
+            }
+
+            messages.forEach((msg) => {
+                const messageElement = createMessageElement(msg, currentUserId);
+                messagesArea.appendChild(messageElement);
+
+                // Mark as read if not own message
+                if (msg.senderId !== currentUserId && !msg.isRead) {
+                    markMessageAsRead(msg._id);
+                }
+            });
+
+            // Scroll to bottom
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        /**
+         * Setup input listeners
+         */
+        function setupInputListeners() {
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const charCount = document.getElementById('charCount');
+
+            // Character count
+            messageInput.addEventListener('input', (e) => {
+                charCount.textContent = e.target.value.length;
+            });
+
+            // Auto-resize textarea
+            messageInput.addEventListener('input', () => {
+                messageInput.style.height = 'auto';
+                messageInput.style.height = Math.min(messageInput.scrollHeight, 100) + 'px';
+            });
+
+            // Send on Enter (Ctrl+Enter for multiline)
+            messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Send button click
+            sendBtn.addEventListener('click', sendMessage);
+
+            // Emit typing indicator
+            let typingTimeout;
+            messageInput.addEventListener('input', () => {
+                if (window.socket && window.emitTyping) {
+                    window.emitTyping(currentBookingId, true);
+                }
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    if (window.socket && window.emitTyping) {
+                        window.emitTyping(currentBookingId, false);
+                    }
+                }, 3000);
+            });
+        }
+
+        /**
+         * Send message
+         */
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const messageText = messageInput.value.trim();
+
+            if (!messageText) {
+                showNotification('Message cannot be empty', 'warning');
+                return;
+            }
+
+            // Disable send button
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+
+            // Send message
+            const result = await sendMessage(currentBookingId, messageText);
+
+            if (result) {
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                document.getElementById('charCount').textContent = '0';
+
+                // Add message to display
+                const messageElement = createMessageElement(result, currentUserId);
+                document.getElementById('messagesArea').appendChild(messageElement);
+                document.getElementById('messagesArea').scrollTop = document.getElementById('messagesArea').scrollHeight;
+
+                // Update local messages
+                allMessages.push(result);
+            }
+
+            sendBtn.disabled = false;
+            messageInput.focus();
+        }
+
+        /**
+         * Initialize Socket.IO listeners
+         */
+        function initializeSocketListeners() {
+            if (!window.socket) return;
+
+            // Join booking room
+            window.socket.emit('join:booking-room', {
+                bookingId: currentBookingId,
+            });
+
+            // Listen for new messages
+            window.socket.on('message:received', (data) => {
+                const messageElement = createMessageElement(data, currentUserId);
+                document.getElementById('messagesArea').appendChild(messageElement);
+                document.getElementById('messagesArea').scrollTop = document.getElementById('messagesArea').scrollHeight;
+                allMessages.push(data);
+            });
+
+            // Listen for typing indicators
+            window.socket.on('message:typing', (data) => {
+                if (data.senderId === currentUserId) return;
+
+                const messagesArea = document.getElementById('messagesArea');
+                let typingDiv = messagesArea.querySelector('.typing-indicator');
+
+                if (data.isTyping) {
+                    if (!typingDiv) {
+                        typingDiv = showTypingIndicator(data.senderName);
+                        messagesArea.appendChild(typingDiv);
+                        messagesArea.scrollTop = messagesArea.scrollHeight;
+                    }
+                } else {
+                    if (typingDiv) {
+                        typingDiv.remove();
+                    }
+                }
+            });
+
+            // Listen for message read
+            window.socket.on('message:read', (data) => {
+                const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
+                if (messageElement) {
+                    const unreadIndicator = messageElement.querySelector('.unread-indicator');
+                    if (unreadIndicator) {
+                        unreadIndicator.remove();
+                    }
+                }
+            });
+        }
+
+        /**
+         * Update chat header with booking info
+         */
+        async function updateChatHeader() {
+            try {
+                const token = getAuthToken();
+                const response = await fetch(`/api/bookings/${currentBookingId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const booking = data.booking;
+
+                    // Determine other user name based on current user role
+                    if (userRole === 'student') {
+                        otherUserName = `${booking.tutorFirstName} ${booking.tutorLastName}`;
+                    } else {
+                        otherUserName = `${booking.studentFirstName} ${booking.studentLastName}`;
+                    }
+
+                    document.getElementById('chatTitle').textContent = `Chat with ${otherUserName}`;
+                    document.getElementById('chatInfo').textContent = `${booking.subject} • Session on ${new Date(booking.sessionDate).toLocaleDateString()}`;
+                }
+            } catch (error) {
+                console.error('Error loading booking info:', error);
+            }
+        }
+
+        /**
+         * Utility: Get user ID from token
+         */
+        function getUserId() {
+            const token = getAuthToken();
+            if (!token) return null;
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return payload.userId;
+        }
+    </script>
+</body>
+</html>

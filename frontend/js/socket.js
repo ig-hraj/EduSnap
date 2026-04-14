@@ -222,16 +222,24 @@ function sendMessage(bookingId, message) {
 }
 
 // Typing indicator
-function emitTyping(bookingId) {
+function emitTyping(bookingId, isTyping = true) {
   if (socket && socket.connected) {
     const userId = getUserId();
     const userName = getUserName();
     
-    socket.emit('message:typing', {
-      bookingId,
-      userId,
-      userName,
-    });
+    if (isTyping) {
+      socket.emit('message:typing', {
+        bookingId,
+        userId,
+        userName,
+        isTyping: true,
+      });
+    } else {
+      socket.emit('message:stop-typing', {
+        bookingId,
+        userId,
+      });
+    }
   }
 }
 

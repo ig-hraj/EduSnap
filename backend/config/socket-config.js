@@ -44,6 +44,24 @@ function setupSocket(server) {
       });
     });
 
+    // Alternative event name for chat page
+    socket.on('join:booking-room', (data) => {
+      const { bookingId } = data;
+      socket.join(`booking:${bookingId}`);
+      socket.bookingId = bookingId;
+      
+      if (!bookingRooms[bookingId]) {
+        bookingRooms[bookingId] = [];
+      }
+      bookingRooms[bookingId].push(socket.id);
+      console.log(`📅 User joined booking room: ${bookingId}`);
+      
+      io.to(`booking:${bookingId}`).emit('booking:user-joined', {
+        bookingId,
+        timestamp: new Date(),
+      });
+    });
+
     // Booking created - notify tutor
     socket.on('booking:created', (data) => {
       const { tutorId, bookingId, studentName, subject, sessionDate, startTime } = data;
@@ -191,11 +209,12 @@ function setupSocket(server) {
     socket.on('message:typing', (data) => {
       const { bookingId, userId, userName } = data;
       
-      // Broadcast typing status to booking room
-      socket.to(`booking:${bookingId}`).emit('message:user-typing', {
+      // Broadcast typing status to booking room (except sender)
+      socket.to(`booking:${bookingId}`).emit('message:typing', {
         bookingId,
-        userId,
-        userName,
+        senderId: userId,
+        senderName: userName,
+        isTyping: true,
       });
     });
 

@@ -638,6 +638,7 @@
             ${booking.notes ? `<div style="color: #666; font-size: 13px; margin-top: 10px;">📝 Notes: ${booking.notes}</div>` : ''}
           </div>
           <div class="booking-actions">
+            <button class="action-btn" onclick="openChat('${booking._id}')" style="background: #667eea; color: white;">💬 Chat</button>
             ${booking.status === 'confirmed' ? `
               <button class="action-btn danger" onclick="openCancelModal('${booking._id}')">Cancel</button>
             ` : ''}
@@ -665,6 +666,10 @@
 
       // Mark button active
       event.target.classList.add('active');
+    }
+
+    function openChat(bookingId) {
+      window.location.href = `chat.html?bookingId=${bookingId}`;
     }
 
     function openCancelModal(bookingId) {

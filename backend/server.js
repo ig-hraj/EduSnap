@@ -7,6 +7,7 @@ const { setupSocket } = require('./config/socket-config');
 const authRoutes = require('./routes/auth');
 const tutorRoutes = require('./routes/tutors');
 const bookingRoutes = require('./routes/bookings');
+const messageRoutes = require('./routes/messages');
 
 // Initialize Express app
 const app = express();
@@ -26,6 +27,7 @@ connectDB();
 app.use('/api/auth', authRoutes);
 app.use('/api/tutors', tutorRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
