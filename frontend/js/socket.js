@@ -148,6 +148,7 @@ function emitListeners(eventName, data) {
 
 // Emit event to server
 function emitBookingCreated(bookingData) {
+  if (!socket || !socket.connected) return;
   const { id, tutorId, studentName, subject, sessionDate, startTime } = bookingData;
   socket.emit('booking:created', {
     bookingId: id,
@@ -160,6 +161,7 @@ function emitBookingCreated(bookingData) {
 }
 
 function emitStatusChanged(bookingId, tutorId, studentId, oldStatus, newStatus) {
+  if (!socket || !socket.connected) return;
   socket.emit('booking:status-changed', {
     bookingId,
     tutorId,
@@ -170,6 +172,7 @@ function emitStatusChanged(bookingId, tutorId, studentId, oldStatus, newStatus) 
 }
 
 function emitBookingCancelled(bookingId, tutorId, studentId, reason) {
+  if (!socket || !socket.connected) return;
   socket.emit('booking:cancelled', {
     bookingId,
     tutorId,
@@ -179,6 +182,7 @@ function emitBookingCancelled(bookingId, tutorId, studentId, reason) {
 }
 
 function emitFeedbackSubmitted(bookingId, tutorId, studentName, rating, feedback) {
+  if (!socket || !socket.connected) return;
   socket.emit('booking:feedback-submitted', {
     bookingId,
     tutorId,
@@ -189,6 +193,7 @@ function emitFeedbackSubmitted(bookingId, tutorId, studentName, rating, feedback
 }
 
 function emitAvailabilityChanged(tutorId, availability) {
+  if (!socket || !socket.connected) return;
   socket.emit('tutor:availability-changed', {
     tutorId,
     availability,
@@ -256,44 +261,4 @@ function emitStoppedTyping(bookingId) {
 // Get socket instance
 function getSocket() {
   return socket;
-}
-
-// Optional: Helper to get user info (requires auth.js to be loaded)
-function getUserId() {
-  try {
-    const token = getAuthToken();
-    if (token) {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.id;
-    }
-  } catch (e) {
-    return null;
-  }
-  return null;
-}
-
-function getUserRole() {
-  try {
-    const token = getAuthToken();
-    if (token) {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.role;
-    }
-  } catch (e) {
-    return null;
-  }
-  return null;
-}
-
-function getUserName() {
-  try {
-    const token = getAuthToken();
-    if (token) {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.name || 'User';
-    }
-  } catch (e) {
-    return 'User';
-  }
-  return 'User';
 }

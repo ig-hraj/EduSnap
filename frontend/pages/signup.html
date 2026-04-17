@@ -355,6 +355,8 @@
         localStorage.setItem('authToken', data.token);
         localStorage.setItem('userRole', 'student');
         localStorage.setItem('userId', data.user.id);
+        localStorage.setItem('firstName', data.user.firstName || '');
+        localStorage.setItem('lastName', data.user.lastName || '');
 
         successMsg.textContent = 'Account created! Redirecting...';
         successMsg.style.display = 'block';
@@ -399,6 +401,8 @@
         localStorage.setItem('authToken', data.token);
         localStorage.setItem('userRole', 'tutor');
         localStorage.setItem('userId', data.user.id);
+        localStorage.setItem('firstName', data.user.firstName || '');
+        localStorage.setItem('lastName', data.user.lastName || '');
 
         successMsg.textContent = 'Account created! Redirecting...';
         successMsg.style.display = 'block';

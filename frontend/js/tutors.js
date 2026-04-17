@@ -1,7 +1,5 @@
 // Tutor API utilities for frontend
 
-const API_URL = 'http://localhost:5000/api';
-
 // Get all tutors (with optional filters)
 const getAllTutors = async (filters = {}) => {
   try {

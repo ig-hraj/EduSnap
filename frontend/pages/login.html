@@ -235,6 +235,8 @@
         localStorage.setItem('authToken', data.token);
         localStorage.setItem('userRole', selectedRole);
         localStorage.setItem('userId', data.user.id);
+        localStorage.setItem('firstName', data.user.firstName || '');
+        localStorage.setItem('lastName', data.user.lastName || '');
 
         successMsg.textContent = 'Login successful! Redirecting...';
         successMsg.style.display = 'block';

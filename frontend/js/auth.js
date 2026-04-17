@@ -12,6 +12,13 @@ const getUserRole = () => {
   return localStorage.getItem('userRole');
 };
 
+// Get user name from localStorage
+const getUserName = () => {
+  const firstName = localStorage.getItem('firstName') || 'User';
+  const lastName = localStorage.getItem('lastName') || '';
+  return `${firstName} ${lastName}`.trim();
+};
+
 // Get user ID from localStorage
 const getUserId = () => {
   return localStorage.getItem('userId');

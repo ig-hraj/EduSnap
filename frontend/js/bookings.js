@@ -1,7 +1,5 @@
 // Booking API utilities for frontend
 
-const API_URL = 'http://localhost:5000/api';
-
 // Create a new booking
 const createBooking = async (bookingData) => {
   try {
