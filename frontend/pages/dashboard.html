@@ -643,7 +643,117 @@
 
     // Edit availability
     function editAvailability() {
-      alert('Availability editor coming soon!\nYou can set your weekly schedule to help students find the best times to book with you.');
+      if (userRole !== 'tutor') return;
+      
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const currentAvailability = userData?.availability || {};
+      
+      let html = '<div style="display: grid; gap: 15px;">';
+      
+      days.forEach(day => {
+        const key = day.toLowerCase();
+        const available = currentAvailability[key] || { available: false };
+        
+        html += `
+          <div style="border: 1px solid #ddd; padding: 15px; border-radius: 6px;">
+            <div style="display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px; align-items: center;">
+              <label>
+                <input type="checkbox" id="available_${day}" ${available.available ? 'checked' : ''} onchange="toggleDay('${day}')">
+                <strong>${day}</strong>
+              </label>
+              <input type="time" id="start_${day}" value="${available.start || '09:00'}" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;" ${!available.available ? 'disabled' : ''}>
+              <span>to</span>
+              <input type="time" id="end_${day}" value="${available.end || '17:00'}" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;" ${!available.available ? 'disabled' : ''}>
+            </div>
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      
+      const modal = document.createElement('div');
+      modal.id = 'availabilityModal';
+      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;';
+      
+      modal.innerHTML = `
+        <div style="background: white; padding: 30px; border-radius: 10px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+          <h2 style="margin-bottom: 20px;">📅 Set Your Availability</h2>
+          ${html}
+          <div style="display: flex; gap: 10px; margin-top: 25px;">
+            <button onclick="closeAvailabilityModal()" style="flex: 1; padding: 12px; background: #f0f0f0; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">Cancel</button>
+            <button onclick="saveAvailability()" style="flex: 1; padding: 12px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">Save</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+
+    function toggleDay(day) {
+      const checkbox = document.getElementById(`available_${day}`);
+      const startInput = document.getElementById(`start_${day}`);
+      const endInput = document.getElementById(`end_${day}`);
+      
+      if (checkbox.checked) {
+        startInput.disabled = false;
+        endInput.disabled = false;
+      } else {
+        startInput.disabled = true;
+        endInput.disabled = true;
+      }
+    }
+
+    function closeAvailabilityModal() {
+      const modal = document.getElementById('availabilityModal');
+      if (modal) modal.remove();
+    }
+
+    async function saveAvailability() {
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const availability = {};
+      
+      days.forEach(day => {
+        const checkbox = document.getElementById(`available_${day}`);
+        const key = day.toLowerCase();
+        
+        if (checkbox.checked) {
+          const start = document.getElementById(`start_${day}`).value;
+          const end = document.getElementById(`end_${day}`).value;
+          availability[key] = { available: true, start, end };
+        } else {
+          availability[key] = { available: false };
+        }
+      });
+      
+      try {
+        const response = await fetch(`http://localhost:5000/api/tutors/${getUserId()}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`,
+          },
+          body: JSON.stringify({ availability }),
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to save availability');
+        }
+        
+        closeAvailabilityModal();
+        showSuccess('Availability updated!');
+        setTimeout(() => location.reload(), 1000);
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    }
+
+    function showSuccess(message) {
+      // Create a toast notification
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #27ae60; color: white; padding: 15px 20px; border-radius: 5px; z-index: 2000; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
     }
 
     // Setup Socket.IO listeners

@@ -162,8 +162,8 @@
     </div>
 
     <div class="role-tabs">
-      <button class="role-tab active" data-role="student">Student</button>
-      <button class="role-tab" data-role="tutor">Tutor</button>
+      <button type="button" class="role-tab active" data-role="student">Student</button>
+      <button type="button" class="role-tab" data-role="tutor">Tutor</button>
     </div>
 
     <form id="loginForm">
@@ -190,7 +190,6 @@
 
   <script src="../js/auth.js"></script>
   <script>
-    const API_URL = 'http://localhost:5000/api';
     let selectedRole = 'student'; // Default role
 
     // Role tab selection

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile - EduSnap</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+    }
+
+    .header {
+      background: white;
+      padding: 20px 0;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      margin-bottom: 30px;
+    }
+
+    .header-content {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      cursor: pointer;
+    }
+
+    .back-btn {
+      background: #f0f0f0;
+      color: #333;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .back-btn:hover {
+      background: #e0e0e0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .form-card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    .form-section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-row.full {
+      grid-template-columns: 1fr;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 5px rgba(102, 126, 234, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .subject-input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .subject-input-group input {
+      flex: 1;
+    }
+
+    .btn-add-subject {
+      padding: 12px 20px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .btn-add-subject:hover {
+      background: #5568d3;
+    }
+
+    .subjects-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .subject-tag {
+      background: #f0f4ff;
+      color: #667eea;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .subject-tag button {
+      background: none;
+      border: none;
+      color: #667eea;
+      cursor: pointer;
+      font-weight: bold;
+      padding: 0;
+    }
+
+    .form-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+
+    .btn-save {
+      flex: 1;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .btn-save:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-save:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-cancel {
+      flex: 1;
+      padding: 14px;
+      background: #f0f0f0;
+      color: #333;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .btn-cancel:hover {
+      background: #e0e0e0;
+    }
+
+    .error-message {
+      background: #fadbd8;
+      color: #e74c3c;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      display: none;
+      font-size: 14px;
+    }
+
+    .success-message {
+      background: #d5f4e6;
+      color: #27ae60;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      display: none;
+      font-size: 14px;
+    }
+
+    .tutor-only {
+      display: none;
+    }
+
+    .tutor-only.visible {
+      display: block;
+    }
+
+    .info-text {
+      color: #999;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .form-buttons {
+        flex-direction: column;
+      }
+
+      .page-title {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="logo" onclick="window.location.href='dashboard.html'">📚 EduSnap</div>
+      <button class="back-btn" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Container -->
+  <div class="container">
+    <div class="page-header">
+      <div class="page-title">Edit Profile</div>
+      <div class="page-subtitle">Update your personal information</div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" id="errorMessage"></div>
+    <div class="success-message" id="successMessage"></div>
+
+    <!-- Basic Information Card -->
+    <div class="form-card">
+      <div class="form-section-title">👤 Basic Information</div>
+
+      <form id="profileForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">First Name *</label>
+            <input type="text" id="firstName" placeholder="John" required>
+          </div>
+          <div class="form-group">
+            <label for="lastName">Last Name *</label>
+            <input type="text" id="lastName" placeholder="Doe" required>
+          </div>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label for="email">Email Address *</label>
+            <input type="email" id="email" placeholder="john@example.com" required disabled>
+            <div class="info-text">📧 Email cannot be changed</div>
+          </div>
+        </div>
+
+        <!-- Tutor Only Fields -->
+        <div class="tutor-only" id="tutorFields">
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+
+          <div class="form-section-title">💼 Professional Information</div>
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label for="bio">About You</label>
+              <textarea id="bio" placeholder="Tell students about your teaching experience, qualifications, and teaching style..."></textarea>
+              <div class="info-text">Share your experience and what makes you a great tutor</div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="hourlyRate">Hourly Rate (USD) *</label>
+              <input type="number" id="hourlyRate" placeholder="25" min="1" step="0.50" required>
+              <div class="info-text">💰 Set your hourly rate in USD</div>
+            </div>
+          </div>
+
+          <div class="form-row full">
+            <div class="form-group">
+              <label for="subjects">Subjects</label>
+              <div class="subject-input-group">
+                <input type="text" id="subjectInput" placeholder="e.g., Mathematics, Physics">
+                <button type="button" class="btn-add-subject" onclick="addSubject()">+ Add</button>
+              </div>
+              <div class="subjects-list" id="subjectsList"></div>
+              <div class="info-text">📚 Add the subjects you tutor</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Buttons -->
+        <div class="form-buttons">
+          <button type="button" class="btn-cancel" onclick="window.location.href='dashboard.html'">Cancel</button>
+          <button type="submit" class="btn-save" id="submitBtn">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script>
+    const API_URL = 'http://localhost:5000/api';
+    let userRole = null;
+    let userId = null;
+    let subjectsArray = [];
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      requireAuth();
+      userRole = getUserRole();
+      userId = getUserId();
+
+      // Show tutor fields only if user is tutor
+      if (userRole === 'tutor') {
+        document.getElementById('tutorFields').classList.add('visible');
+      }
+
+      loadProfile();
+    });
+
+    // Load current profile
+    async function loadProfile() {
+      try {
+        const response = await fetch(`${API_URL}/auth/me`, {
+          headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to load profile');
+        }
+
+        const data = await response.json();
+        const user = data.user;
+
+        // Fill basic fields
+        document.getElementById('firstName').value = user.firstName || '';
+        document.getElementById('lastName').value = user.lastName || '';
+        document.getElementById('email').value = user.email || '';
+
+        // Load tutor-specific data
+        if (userRole === 'tutor') {
+          const tutorRes = await fetch(`${API_URL}/tutors/${userId}`, {
+            headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+          });
+
+          if (tutorRes.ok) {
+            const tutorData = await tutorRes.json();
+            const tutor = tutorData.tutor;
+
+            document.getElementById('bio').value = tutor.bio || '';
+            document.getElementById('hourlyRate').value = tutor.hourlyRate || '';
+            subjectsArray = tutor.subjects || [];
+            renderSubjects();
+          }
+        }
+      } catch (error) {
+        showError('Failed to load profile: ' + error.message);
+      }
+    }
+
+    // Add subject
+    function addSubject() {
+      const input = document.getElementById('subjectInput');
+      const subject = input.value.trim();
+
+      if (!subject) {
+        alert('Please enter a subject');
+        return;
+      }
+
+      if (subjectsArray.includes(subject)) {
+        alert('Subject already added');
+        return;
+      }
+
+      subjectsArray.push(subject);
+      input.value = '';
+      renderSubjects();
+    }
+
+    // Remove subject
+    function removeSubject(index) {
+      subjectsArray.splice(index, 1);
+      renderSubjects();
+    }
+
+    // Render subjects
+    function renderSubjects() {
+      const html = subjectsArray
+        .map((subject, index) => `
+          <div class="subject-tag">
+            ${subject}
+            <button type="button" onclick="removeSubject(${index})">✕</button>
+          </div>
+        `)
+        .join('');
+
+      document.getElementById('subjectsList').innerHTML = html;
+    }
+
+    // Handle form submission
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const btn = document.getElementById('submitBtn');
+
+      if (!firstName || !lastName) {
+        showError('First name and last name are required');
+        return;
+      }
+
+      try {
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        const payload = {
+          firstName,
+          lastName,
+        };
+
+        // Add tutor fields if applicable
+        if (userRole === 'tutor') {
+          const bio = document.getElementById('bio').value.trim();
+          const hourlyRate = parseFloat(document.getElementById('hourlyRate').value);
+
+          if (!hourlyRate || hourlyRate <= 0) {
+            throw new Error('Please enter a valid hourly rate');
+          }
+
+          payload.bio = bio;
+          payload.hourlyRate = hourlyRate;
+          payload.subjects = subjectsArray;
+        }
+
+        const response = await fetch(`${API_URL}/tutors/${userId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAuthToken()}`,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.message || 'Failed to update profile');
+        }
+
+        showSuccess('Profile updated successfully!');
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1500);
+      } catch (error) {
+        showError(error.message);
+        btn.disabled = false;
+        btn.textContent = 'Save Changes';
+      }
+    });
+
+    // Show error
+    function showError(message) {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      window.scrollTo(0, 0);
+    }
+
+    // Show success
+    function showSuccess(message) {
+      const successDiv = document.getElementById('successMessage');
+      successDiv.textContent = message;
+      successDiv.style.display = 'block';
+      window.scrollTo(0, 0);
+    }
+
+    // Allow adding subject with Enter key
+    document.getElementById('subjectInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addSubject();
+      }
+    });
+  </script>
+</body>
+</html>
