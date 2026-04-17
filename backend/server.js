@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth');
 const tutorRoutes = require('./routes/tutors');
 const bookingRoutes = require('./routes/bookings');
 const messageRoutes = require('./routes/messages');
+const paymentRoutes = require('./routes/payments');
 
 // Initialize Express app
 const app = express();
@@ -29,6 +30,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tutors', tutorRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
