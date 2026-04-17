@@ -546,6 +546,9 @@
                 <p style="color: #999;">Duration: ${calculateDuration(booking.startTime, booking.endTime).toFixed(1)} hrs</p>
               </div>
               <div class="booking-action">
+                <a href="chat.html?bookingId=${booking.id}" style="text-decoration: none;">
+                  <button class="btn-small btn-primary-small">Message</button>
+                </a>
                 <a href="booking-history.html" style="text-decoration: none;">
                   <button class="btn-small btn-secondary-small">Manage</button>
                 </a>
@@ -608,6 +611,11 @@
         const bookingsRes = await getMyBookings();
         const bookings = bookingsRes.bookings || [];
         const upcomingBookings = bookings.filter(b => b.status === 'confirmed');
+        const uniqueStudents = new Set(bookings.map(b => b.studentId)).size;
+
+        // Update stats
+        document.querySelectorAll('#tutorView .stat-card')[0].querySelector('.stat-value').textContent = upcomingBookings.length;
+        document.querySelectorAll('#tutorView .stat-card')[1].querySelector('.stat-value').textContent = uniqueStudents;
 
         if (upcomingBookings.length > 0) {
           const bookingsHtml = upcomingBookings.slice(0, 3).map(booking => `
