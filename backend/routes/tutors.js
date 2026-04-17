@@ -69,7 +69,7 @@ router.put('/:id', verifyToken, async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
-    const { firstName, lastName, bio, subjects, hourlyRate, phone } = req.body;
+    const { firstName, lastName, bio, subjects, hourlyRate, phone, availability } = req.body;
 
     // Find and update tutor
     const tutor = await Tutor.findById(req.params.id);
@@ -85,6 +85,7 @@ router.put('/:id', verifyToken, async (req, res) => {
     if (subjects) tutor.subjects = subjects;
     if (hourlyRate) tutor.hourlyRate = hourlyRate;
     if (phone) tutor.phone = phone;
+    if (availability) tutor.availability = availability;
 
     await tutor.save();
 

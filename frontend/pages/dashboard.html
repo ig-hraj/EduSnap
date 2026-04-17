@@ -726,7 +726,7 @@
       });
       
       try {
-        const response = await fetch(`http://localhost:5000/api/tutors/${getUserId()}`, {
+        const response = await fetch(`http://localhost:5000/api/tutors/${getUserId()}/availability`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -740,7 +740,7 @@
         }
         
         closeAvailabilityModal();
-        showSuccess('Availability updated!');
+        showSuccess('Availability updated! Reloading...');
         setTimeout(() => location.reload(), 1000);
       } catch (error) {
         alert('Error: ' + error.message);
