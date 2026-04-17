@@ -4,6 +4,7 @@ const cors = require('cors');
 const http = require('http');
 const connectDB = require('./config/db');
 const { setupSocket } = require('./config/socket-config');
+const { startReminderScheduler } = require('./config/email-reminders');
 const authRoutes = require('./routes/auth');
 const tutorRoutes = require('./routes/tutors');
 const bookingRoutes = require('./routes/bookings');
@@ -51,4 +52,7 @@ server.listen(PORT, () => {
   console.log(`\n🚀 Server running on http://localhost:${PORT}`);
   console.log(`📚 Tutor Booking System Backend`);
   console.log(`⚡ Socket.IO enabled for real-time updates\n`);
+  
+  // Start email reminder scheduler
+  startReminderScheduler();
 });

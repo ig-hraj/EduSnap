@@ -2,6 +2,7 @@ const express = require('express');
 const Booking = require('../models/Booking');
 const Tutor = require('../models/Tutor');
 const { verifyToken } = require('../middleware/auth');
+const { sendEmail, bookingConfirmationEmail, cancellationEmail, feedbackReceivedEmail } = require('../config/email');
 
 const router = express.Router();
 
@@ -81,6 +82,20 @@ router.post('/', verifyToken, async (req, res) => {
     });
 
     await booking.save();
+
+    // Send confirmation email to student
+    const emailContent = bookingConfirmationEmail(
+      booking.studentName,
+      booking.tutorName,
+      booking.subject,
+      booking.sessionDate,
+      booking.startTime,
+      booking.endTime,
+      booking.totalPrice
+    );
+    sendEmail(student.email, '🎓 Booking Confirmed - EduSnap', emailContent).catch(err => 
+      console.log('Email send error (non-blocking):', err.message)
+    );
 
     res.status(201).json({
       message: 'Booking created successfully',
@@ -204,6 +219,37 @@ router.put('/:id/cancel', verifyToken, async (req, res) => {
     booking.cancelReason = reason || 'Cancelled by user';
     await booking.save();
 
+    // Send cancellation emails
+    const Student = require('../models/Student');
+    const student = await Student.findById(booking.studentId);
+    const tutor = await Tutor.findById(booking.tutorId);
+
+    if (student && student.email) {
+      const emailContent = cancellationEmail(
+        booking.studentName,
+        booking.tutorName,
+        booking.subject,
+        booking.sessionDate,
+        reason || 'Cancelled'
+      );
+      sendEmail(student.email, '❌ Booking Cancelled - EduSnap', emailContent).catch(err => 
+        console.log('Email send error (non-blocking):', err.message)
+      );
+    }
+
+    if (tutor && tutor.email) {
+      const emailContent = cancellationEmail(
+        booking.tutorName,
+        booking.studentName,
+        booking.subject,
+        booking.sessionDate,
+        reason || 'Cancelled'
+      );
+      sendEmail(tutor.email, '❌ Booking Cancelled - EduSnap', emailContent).catch(err => 
+        console.log('Email send error (non-blocking):', err.message)
+      );
+    }
+
     res.status(200).json({
       message: 'Booking cancelled successfully',
       booking,
@@ -262,6 +308,21 @@ router.put('/:id/feedback', verifyToken, async (req, res) => {
           ratings: parseFloat(avgRating.toFixed(1)),
           totalReviews: allFeedback.length,
         }
+      );
+    }
+
+    // Send feedback notification email to tutor
+    const tutor = await Tutor.findById(booking.tutorId);
+    if (tutor && tutor.email) {
+      const emailContent = feedbackReceivedEmail(
+        booking.tutorName,
+        booking.studentName,
+        booking.subject,
+        rating,
+        feedback
+      );
+      sendEmail(tutor.email, '⭐ You Received Feedback - EduSnap', emailContent).catch(err => 
+        console.log('Email send error (non-blocking):', err.message)
       );
     }
 
