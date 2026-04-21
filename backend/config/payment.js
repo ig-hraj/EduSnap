@@ -52,7 +52,11 @@ function verifyPaymentSignature(orderId, paymentId, signature) {
       .update(body)
       .digest('hex');
 
-    const isSignatureValid = expectedSignature === signature;
+    // Use timing-safe comparison to prevent timing attack side-channel
+    const isSignatureValid = crypto.timingSafeEqual(
+      Buffer.from(expectedSignature, 'utf8'),
+      Buffer.from(signature, 'utf8')
+    );
 
     if (isSignatureValid) {
       console.log(`✅ Payment signature verified: ${paymentId}`);

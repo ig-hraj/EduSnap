@@ -150,17 +150,36 @@ function showNotificationToast(notificationData) {
 
   const icon = icons[type] || icons['info'];
 
-  // Create notification element
+  // Create notification element safely (prevent XSS — no innerHTML for user data)
   const notification = document.createElement('div');
   notification.className = `notification ${type}`;
-  notification.innerHTML = `
-    <div class="notification-icon">${icon}</div>
-    <div class="notification-content">
-      <div class="notification-title">${title}</div>
-      <div class="notification-message">${message}</div>
-    </div>
-    <button class="notification-close" onclick="this.closest('.notification').remove()">×</button>
-  `;
+
+  const iconDiv = document.createElement('div');
+  iconDiv.className = 'notification-icon';
+  iconDiv.textContent = icon;
+
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'notification-content';
+
+  const titleDiv = document.createElement('div');
+  titleDiv.className = 'notification-title';
+  titleDiv.textContent = title; // Safe: textContent escapes HTML
+
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'notification-message';
+  msgDiv.textContent = message; // Safe: textContent escapes HTML
+
+  contentDiv.appendChild(titleDiv);
+  contentDiv.appendChild(msgDiv);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'notification-close';
+  closeBtn.textContent = '×';
+  closeBtn.addEventListener('click', () => notification.remove());
+
+  notification.appendChild(iconDiv);
+  notification.appendChild(contentDiv);
+  notification.appendChild(closeBtn);
 
   container.appendChild(notification);
 

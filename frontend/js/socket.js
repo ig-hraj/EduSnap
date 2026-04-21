@@ -11,26 +11,37 @@ const listeners = {
   'typing:user': [],
 };
 
-// Initialize Socket.IO connection
+// Initialize Socket.IO connection with JWT authentication
 function initSocket() {
   if (socket && socket.connected) {
     console.log('⚡ Socket already connected');
     return socket;
   }
 
-  socket = io();
+  const token = getAuthToken();
+  if (!token) {
+    console.warn('⚠️ Cannot init socket: no auth token');
+    return null;
+  }
+
+  // Pass JWT token for server-side authentication
+  socket = io({
+    auth: { token },
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+  });
 
   // Connection events
   socket.on('connect', () => {
-    console.log('✓ Connected to server');
-    
-    // User joins - send userId and role
-    const userId = getUserId();
-    const role = getUserRole();
-    
-    if (userId && role) {
-      socket.emit('user:join', userId, role);
-      console.log(`👤 ${role} ${userId} joined socket`);
+    console.log('✓ Connected to server (authenticated)');
+  });
+
+  socket.on('connect_error', (err) => {
+    console.error('✗ Socket connection error:', err.message);
+    // If auth fails, don't keep retrying
+    if (err.message === 'Authentication required' || err.message === 'Invalid or expired token') {
+      socket.disconnect();
     }
   });
 
@@ -208,8 +219,8 @@ function joinBookingRoom(bookingId) {
   }
 }
 
-// Send message in booking chat
-function sendMessage(bookingId, message) {
+// Send message via Socket.IO (renamed to avoid collision with messages.js)
+function emitSocketMessage(bookingId, message) {
   if (socket && socket.connected) {
     const userId = getUserId();
     const userName = getUserName();

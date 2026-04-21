@@ -577,7 +577,7 @@
 
       // Load tutor profile
       try {
-        const response = await fetch(`http://localhost:5000/api/auth/me`, {
+        const response = await fetch(`${API_URL}/auth/me`, {
           headers: { 'Authorization': `Bearer ${getAuthToken()}` },
         });
         const data = await response.json();
@@ -734,7 +734,7 @@
       });
       
       try {
-        const response = await fetch(`http://localhost:5000/api/tutors/${getUserId()}/availability`, {
+        const response = await fetch(`${API_URL}/tutors/${getUserId()}/availability`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

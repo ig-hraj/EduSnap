@@ -47,6 +47,13 @@ const bookingSchema = new mongoose.Schema({
     enum: ['confirmed', 'completed', 'cancelled'],
     default: 'confirmed',
   },
+  // Payment tracking (updated by payment verification route)
+  paymentStatus: {
+    type: String,
+    enum: ['unpaid', 'paid', 'refunded'],
+    default: 'unpaid',
+  },
+  paymentId: String, // Razorpay payment ID
   notes: String, // Student notes/requirements
   cancelReason: String, // If cancelled
   rating: Number, // Tutor rating by student (0-5)
@@ -61,8 +68,9 @@ const bookingSchema = new mongoose.Schema({
   },
 });
 
-// Create index for efficient queries
+// Create indexes for efficient queries
 bookingSchema.index({ studentId: 1, sessionDate: 1 });
 bookingSchema.index({ tutorId: 1, sessionDate: 1 });
+bookingSchema.index({ tutorId: 1, sessionDate: 1, status: 1 }); // For conflict detection
 
 module.exports = mongoose.model('Booking', bookingSchema);

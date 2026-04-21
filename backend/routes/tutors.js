@@ -15,8 +15,9 @@ router.get('/', async (req, res) => {
     let filter = {};
 
     if (subject) {
-      // Search tutors who teach this subject
-      filter.subjects = { $in: [new RegExp(subject, 'i')] };
+      // Escape regex special chars to prevent ReDoS attacks
+      const escapedSubject = subject.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.subjects = { $in: [new RegExp(escapedSubject, 'i')] };
     }
 
     if (minRate || maxRate) {

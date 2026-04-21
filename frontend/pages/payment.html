@@ -239,6 +239,8 @@
         </div>
     </div>
 
+    <!-- Razorpay Script — MUST load before inline code that uses new Razorpay() -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/notifications.js"></script>
 
@@ -249,7 +251,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Check if user is logged in
             if (!isLoggedIn()) {
-                redirectToLogin();
+                logout();
                 return;
             }
 
@@ -479,8 +481,7 @@
             return '';
         }
     </script>
-
-    <!-- Razorpay Script -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+    <!-- Razorpay already loaded in <head> -->
 </body>
 </html>

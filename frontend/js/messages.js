@@ -1,13 +1,15 @@
 // Frontend Message Utilities
 // Location: frontend/js/messages.js
 
+// NOTE: API_URL is already defined in auth.js — do NOT redeclare
+
 /**
  * Get all messages for a specific booking
  */
 async function getMessages(bookingId) {
   try {
     const token = getAuthToken();
-    const response = await fetch(`/api/messages/${bookingId}`, {
+    const response = await fetch(`${API_URL}/messages/${bookingId}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -15,7 +17,7 @@ async function getMessages(bookingId) {
     });
 
     if (response.status === 401) {
-      redirectToLogin();
+      logout();
       return null;
     }
 
@@ -27,7 +29,7 @@ async function getMessages(bookingId) {
     return data.messages || [];
   } catch (error) {
     console.error('Error fetching messages:', error);
-    showNotification('Failed to load messages', 'error');
+    if (typeof showError === 'function') showError('Chat Error', 'Failed to load messages');
     return [];
   }
 }
@@ -35,15 +37,15 @@ async function getMessages(bookingId) {
 /**
  * Send a new message in a booking session
  */
-async function sendMessage(bookingId, messageText) {
+async function sendMessageAPI(bookingId, messageText) {
   try {
     if (!messageText.trim()) {
-      showNotification('Message cannot be empty', 'warning');
+      if (typeof showWarning === 'function') showWarning('Empty Message', 'Message cannot be empty');
       return null;
     }
 
     const token = getAuthToken();
-    const response = await fetch('/api/messages', {
+    const response = await fetch(`${API_URL}/messages`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -56,7 +58,7 @@ async function sendMessage(bookingId, messageText) {
     });
 
     if (response.status === 401) {
-      redirectToLogin();
+      logout();
       return null;
     }
 
@@ -69,7 +71,7 @@ async function sendMessage(bookingId, messageText) {
     return data.messageData;
   } catch (error) {
     console.error('Error sending message:', error);
-    showNotification('Failed to send message', 'error');
+    if (typeof showError === 'function') showError('Send Failed', 'Failed to send message');
     return null;
   }
 }
@@ -80,7 +82,7 @@ async function sendMessage(bookingId, messageText) {
 async function markMessageAsRead(messageId) {
   try {
     const token = getAuthToken();
-    const response = await fetch(`/api/messages/${messageId}/read`, {
+    const response = await fetch(`${API_URL}/messages/${messageId}/read`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -105,7 +107,7 @@ async function markMessageAsRead(messageId) {
 async function getUnreadCount(bookingId) {
   try {
     const token = getAuthToken();
-    const response = await fetch(`/api/messages/${bookingId}/unread-count`, {
+    const response = await fetch(`${API_URL}/messages/${bookingId}/unread-count`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',

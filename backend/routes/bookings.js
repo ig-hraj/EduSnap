@@ -38,6 +38,15 @@ router.post('/', verifyToken, async (req, res) => {
     // Calculate duration (in minutes)
     const [startHour, startMin] = startTime.split(':').map(Number);
     const [endHour, endMin] = endTime.split(':').map(Number);
+
+    // Validate time format (must be HH:MM, 0-23 hours, 0-59 minutes)
+    if (isNaN(startHour) || isNaN(startMin) || isNaN(endHour) || isNaN(endMin)) {
+      return res.status(400).json({ message: 'Invalid time format. Use HH:MM' });
+    }
+    if (startHour < 0 || startHour > 23 || endHour < 0 || endHour > 23) {
+      return res.status(400).json({ message: 'Hours must be between 0 and 23' });
+    }
+
     const startTotalMin = startHour * 60 + startMin;
     const endTotalMin = endHour * 60 + endMin;
     const durationMinutes = endTotalMin - startTotalMin;
@@ -46,22 +55,35 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(400).json({ message: 'End time must be after start time' });
     }
 
+    if (durationMinutes > 480) {
+      return res.status(400).json({ message: 'Session cannot exceed 8 hours' });
+    }
+
     // Calculate total price
     const durationHours = durationMinutes / 60;
     const totalPrice = tutor.hourlyRate * durationHours;
 
-    // Check for conflicting bookings (optional - for advanced features)
-    const existingBooking = await Booking.findOne({
+    // ========== Proper numeric overlap detection ==========
+    // Fetch all confirmed bookings for this tutor on this date
+    const sameDayBookings = await Booking.find({
       tutorId,
       sessionDate: new Date(sessionDate),
       status: { $in: ['confirmed', 'completed'] },
-      $or: [
-        { startTime: { $lt: endTime }, endTime: { $gt: startTime } },
-      ],
     });
 
-    if (existingBooking) {
-      return res.status(400).json({ message: 'Tutor is not available at this time' });
+    // Check each existing booking for time overlap using numeric minutes comparison
+    const hasConflict = sameDayBookings.some(existing => {
+      const [eStartH, eStartM] = existing.startTime.split(':').map(Number);
+      const [eEndH, eEndM] = existing.endTime.split(':').map(Number);
+      const existingStart = eStartH * 60 + eStartM;
+      const existingEnd = eEndH * 60 + eEndM;
+
+      // Two intervals overlap if: newStart < existingEnd AND newEnd > existingStart
+      return startTotalMin < existingEnd && endTotalMin > existingStart;
+    });
+
+    if (hasConflict) {
+      return res.status(400).json({ message: 'Tutor is not available at this time. Please choose a different slot.' });
     }
 
     // Create booking

@@ -357,6 +357,7 @@
     <script src="../js/auth.js"></script>
     <script src="../js/notifications.js"></script>
     <script src="../js/messages.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script src="../js/socket.js"></script>
 
     <script>
@@ -370,11 +371,11 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Check if user is logged in
             if (!isLoggedIn()) {
-                redirectToLogin();
+                logout();
                 return;
             }
 
-            // Get user info
+            // Get user info (from auth.js localStorage — do NOT redefine)
             currentUserId = getUserId();
             userRole = getUserRole();
 
@@ -383,7 +384,7 @@
             currentBookingId = urlParams.get('bookingId');
 
             if (!currentBookingId) {
-                showNotification('Invalid booking ID', 'error');
+                showError('Invalid Booking', 'No booking ID provided');
                 setTimeout(() => window.history.back(), 2000);
                 return;
             }
@@ -391,9 +392,12 @@
             // Load messages
             await loadMessages();
 
-            // Initialize Socket.IO if available
-            if (window.socket) {
+            // Initialize Socket.IO connection and listeners
+            try {
+                initSocket();
                 initializeSocketListeners();
+            } catch (e) {
+                console.warn('Socket.IO init failed (non-blocking):', e.message);
             }
 
             // Setup input event listeners
@@ -473,16 +477,16 @@
                 messageInput.style.height = Math.min(messageInput.scrollHeight, 100) + 'px';
             });
 
-            // Send on Enter (Ctrl+Enter for multiline)
+            // Send on Enter (Shift+Enter for multiline)
             messageInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    sendMessage();
+                    handleSendMessage();
                 }
             });
 
             // Send button click
-            sendBtn.addEventListener('click', sendMessage);
+            sendBtn.addEventListener('click', handleSendMessage);
 
             // Emit typing indicator
             let typingTimeout;
@@ -500,14 +504,14 @@
         }
 
         /**
-         * Send message
+         * Send message — renamed to avoid collision with sendMessage() in messages.js
          */
-        async function sendMessage() {
+        async function handleSendMessage() {
             const messageInput = document.getElementById('messageInput');
             const messageText = messageInput.value.trim();
 
             if (!messageText) {
-                showNotification('Message cannot be empty', 'warning');
+                showWarning('Empty Message', 'Message cannot be empty');
                 return;
             }
 
@@ -515,15 +519,15 @@
             const sendBtn = document.getElementById('sendBtn');
             sendBtn.disabled = true;
 
-            // Send message
-            const result = await sendMessage(currentBookingId, messageText);
+            // Call the API function from messages.js (not this function!)
+            const result = await sendMessageAPI(currentBookingId, messageText);
 
             if (result) {
                 messageInput.value = '';
                 messageInput.style.height = 'auto';
                 document.getElementById('charCount').textContent = '0';
 
-                // Add message to display
+                // Add message to display (don't wait for socket — show immediately)
                 const messageElement = createMessageElement(result, currentUserId);
                 document.getElementById('messagesArea').appendChild(messageElement);
                 document.getElementById('messagesArea').scrollTop = document.getElementById('messagesArea').scrollHeight;
@@ -540,23 +544,30 @@
          * Initialize Socket.IO listeners
          */
         function initializeSocketListeners() {
-            if (!window.socket) return;
+            const sock = getSocket();
+            if (!sock) return;
 
             // Join booking room
-            window.socket.emit('join:booking-room', {
+            sock.emit('join:booking-room', {
                 bookingId: currentBookingId,
             });
 
-            // Listen for new messages
-            window.socket.on('message:received', (data) => {
+            // Listen for new messages — skip own messages to prevent duplicates
+            sock.on('message:received', (data) => {
+                // Skip if this is our own message (already added via API response)
+                if (data.senderId === currentUserId) return;
+
                 const messageElement = createMessageElement(data, currentUserId);
                 document.getElementById('messagesArea').appendChild(messageElement);
                 document.getElementById('messagesArea').scrollTop = document.getElementById('messagesArea').scrollHeight;
                 allMessages.push(data);
+
+                // Mark as read immediately
+                if (data._id) markMessageAsRead(data._id);
             });
 
             // Listen for typing indicators
-            window.socket.on('message:typing', (data) => {
+            sock.on('message:typing', (data) => {
                 if (data.senderId === currentUserId) return;
 
                 const messagesArea = document.getElementById('messagesArea');
@@ -576,7 +587,7 @@
             });
 
             // Listen for message read
-            window.socket.on('message:read', (data) => {
+            sock.on('message:read', (data) => {
                 const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
                 if (messageElement) {
                     const unreadIndicator = messageElement.querySelector('.unread-indicator');
@@ -592,22 +603,17 @@
          */
         async function updateChatHeader() {
             try {
-                const token = getAuthToken();
-                const response = await fetch(`/api/bookings/${currentBookingId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
+                const response = await apiCall(`/bookings/${currentBookingId}`);
 
                 if (response.ok) {
                     const data = await response.json();
                     const booking = data.booking;
 
-                    // Determine other user name based on current user role
+                    // Use tutorName/studentName (full names stored in Booking model)
                     if (userRole === 'student') {
-                        otherUserName = `${booking.tutorFirstName} ${booking.tutorLastName}`;
+                        otherUserName = booking.tutorName || 'Tutor';
                     } else {
-                        otherUserName = `${booking.studentFirstName} ${booking.studentLastName}`;
+                        otherUserName = booking.studentName || 'Student';
                     }
 
                     document.getElementById('chatTitle').textContent = `Chat with ${otherUserName}`;
@@ -618,15 +624,9 @@
             }
         }
 
-        /**
-         * Utility: Get user ID from token
-         */
-        function getUserId() {
-            const token = getAuthToken();
-            if (!token) return null;
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            return payload.userId;
-        }
+        // NOTE: getUserId() is already defined correctly in auth.js (reads from localStorage)
+        // Do NOT redefine it here — the old version was reading payload.userId from JWT
+        // but the JWT actually stores the field as 'id', not 'userId'
     </script>
 </body>
 </html>

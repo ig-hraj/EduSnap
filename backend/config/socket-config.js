@@ -1,4 +1,5 @@
 const socketIO = require('socket.io');
+const jwt = require('jsonwebtoken');
 
 // Store active users: { userId: socketId }
 const activeUsers = {};
@@ -9,23 +10,39 @@ const bookingRooms = {};
 function setupSocket(server) {
   const io = socketIO(server, {
     cors: {
-      origin: '*',
+      origin: process.env.FRONTEND_URL || '*',
       methods: ['GET', 'POST'],
+      credentials: true,
     },
   });
 
-  // Connection
-  io.on('connection', (socket) => {
-    console.log(`✓ User connected: ${socket.id}`);
+  // ========== JWT Authentication Middleware ==========
+  io.use((socket, next) => {
+    const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(' ')[1];
+    
+    if (!token) {
+      console.log('⚠️ Socket auth failed: No token provided');
+      return next(new Error('Authentication required'));
+    }
 
-    // User joins (login)
-    socket.on('user:join', (userId, role) => {
-      activeUsers[userId] = socket.id;
-      socket.userId = userId;
-      socket.role = role;
-      console.log(`👤 ${role} ${userId} joined`);
-      io.emit('users:online', Object.keys(activeUsers));
-    });
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      socket.userId = decoded.id;
+      socket.role = decoded.role;
+      next();
+    } catch (err) {
+      console.log('⚠️ Socket auth failed: Invalid token');
+      return next(new Error('Invalid or expired token'));
+    }
+  });
+
+  // Connection (only authenticated users reach here)
+  io.on('connection', (socket) => {
+    console.log(`✓ User connected: ${socket.id} (${socket.role} ${socket.userId})`);
+
+    // Auto-register authenticated user
+    activeUsers[socket.userId] = socket.id;
+    io.emit('users:online', Object.keys(activeUsers));
 
     // User joins booking room for chat (student + tutor)
     socket.on('booking:join', (bookingId) => {

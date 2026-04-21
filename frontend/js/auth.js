@@ -1,6 +1,9 @@
 // Auth utility functions for frontend
 
-const API_URL = 'http://localhost:5000/api';
+// Environment-aware API URL — auto-detects local vs production
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000/api'
+  : `${window.location.origin}/api`;
 
 // Get token from localStorage
 const getAuthToken = () => {
@@ -29,11 +32,13 @@ const isLoggedIn = () => {
   return !!getAuthToken();
 };
 
-// Logout user
+// Logout user — clear ALL stored user data
 const logout = () => {
   localStorage.removeItem('authToken');
   localStorage.removeItem('userRole');
   localStorage.removeItem('userId');
+  localStorage.removeItem('firstName');
+  localStorage.removeItem('lastName');
   window.location.href = 'login.html';
 };
 

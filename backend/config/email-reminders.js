@@ -4,7 +4,8 @@ const Student = require('../models/Student');
 const { sendEmail, sessionReminderEmail } = require('./email');
 
 let reminderCheckInterval = null;
-const sentReminders = new Set(); // Track which reminders we've already sent
+let cleanupInterval = null;
+const sentReminders = new Map(); // Track reminderId → timestamp of when it was sent
 
 /**
  * Start the reminder scheduler
@@ -13,6 +14,14 @@ const sentReminders = new Set(); // Track which reminders we've already sent
 function startReminderScheduler() {
   // Check every 5 minutes
   reminderCheckInterval = setInterval(checkAndSendReminders, 5 * 60 * 1000);
+  
+  // Bulk cleanup every hour — remove reminders older than 24h
+  cleanupInterval = setInterval(() => {
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    for (const [key, timestamp] of sentReminders) {
+      if (timestamp < cutoff) sentReminders.delete(key);
+    }
+  }, 60 * 60 * 1000);
   
   console.log('✓ Email reminder scheduler started');
   
@@ -97,13 +106,8 @@ async function checkAndSendReminders() {
           console.log(`📧 Session reminder sent to ${booking.tutorName} for ${booking.subject}`);
         }
 
-        // Mark as sent
-        sentReminders.add(reminderId);
-
-        // Clean up old reminders from the set after 24 hours
-        setTimeout(() => {
-          sentReminders.delete(reminderId);
-        }, 24 * 60 * 60 * 1000);
+        // Mark as sent with timestamp (for bulk cleanup)
+        sentReminders.set(reminderId, Date.now());
       }
     }
   } catch (error) {
