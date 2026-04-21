@@ -1,360 +1,51 @@
+/**
+ * Booking Routes — Clean API layer.
+ *
+ * Each route is a pipeline:  auth → validate → controller
+ * 
+ * BEFORE (old monolithic routes/bookings.js):
+ *   - 360 lines of mixed validation, DB queries, email logic, error handling
+ *   - Everything in massive try/catch blocks
+ *   - Inline require() calls
+ *   - Duplicated auth checks
+ *
+ * AFTER (this file):
+ *   - 35 lines. Each route is one readable line.
+ *   - Validation: validators/booking.validator.js (Joi schemas)
+ *   - Logic: services/booking.service.js (pure business logic)
+ *   - HTTP: controllers/booking.controller.js (thin req→service→res)
+ *   - Errors: utils/catchAsync.js (auto-forwards to global handler)
+ */
 const express = require('express');
-const Booking = require('../models/Booking');
-const Tutor = require('../models/Tutor');
-const { verifyToken } = require('../middleware/auth');
-const { sendEmail, bookingConfirmationEmail, cancellationEmail, feedbackReceivedEmail } = require('../config/email');
+const { verifyToken, restrictTo } = require('../middleware/auth');
+const catchAsync = require('../utils/catchAsync');
+const bookingController = require('../controllers/booking.controller');
+const {
+  validateCreateBooking,
+  validateCancelBooking,
+  validateFeedback,
+} = require('../validators/booking.validator');
 
 const router = express.Router();
 
-// ========== CREATE BOOKING ==========
+// ========== ROUTES ==========
 
-// Create new booking (students only)
-router.post('/', verifyToken, async (req, res) => {
-  try {
-    if (req.user.role !== 'student') {
-      return res.status(403).json({ message: 'Only students can book sessions' });
-    }
+// Create booking (students only)
+router.post('/',      verifyToken, restrictTo('student'), validateCreateBooking, catchAsync(bookingController.create));
 
-    const { tutorId, subject, sessionDate, startTime, endTime, notes } = req.body;
+// Get current user's bookings
+router.get('/my-bookings', verifyToken, catchAsync(bookingController.getMyBookings));
 
-    // Validate input
-    if (!tutorId || !subject || !sessionDate || !startTime || !endTime) {
-      return res.status(400).json({ message: 'All required fields must be provided' });
-    }
+// Get upcoming bookings (students)
+router.get('/upcoming',    verifyToken, restrictTo('student'), catchAsync(bookingController.getUpcoming));
 
-    // Get tutor info
-    const tutor = await Tutor.findById(tutorId);
-    if (!tutor) {
-      return res.status(404).json({ message: 'Tutor not found' });
-    }
+// Get single booking by ID
+router.get('/:id',         verifyToken, catchAsync(bookingController.getById));
 
-    // Get student info
-    const Student = require('../models/Student');
-    const student = await Student.findById(req.user.id);
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
-    }
+// Cancel a booking
+router.put('/:id/cancel',  verifyToken, validateCancelBooking, catchAsync(bookingController.cancel));
 
-    // Calculate duration (in minutes)
-    const [startHour, startMin] = startTime.split(':').map(Number);
-    const [endHour, endMin] = endTime.split(':').map(Number);
-
-    // Validate time format (must be HH:MM, 0-23 hours, 0-59 minutes)
-    if (isNaN(startHour) || isNaN(startMin) || isNaN(endHour) || isNaN(endMin)) {
-      return res.status(400).json({ message: 'Invalid time format. Use HH:MM' });
-    }
-    if (startHour < 0 || startHour > 23 || endHour < 0 || endHour > 23) {
-      return res.status(400).json({ message: 'Hours must be between 0 and 23' });
-    }
-
-    const startTotalMin = startHour * 60 + startMin;
-    const endTotalMin = endHour * 60 + endMin;
-    const durationMinutes = endTotalMin - startTotalMin;
-
-    if (durationMinutes <= 0) {
-      return res.status(400).json({ message: 'End time must be after start time' });
-    }
-
-    if (durationMinutes > 480) {
-      return res.status(400).json({ message: 'Session cannot exceed 8 hours' });
-    }
-
-    // Calculate total price
-    const durationHours = durationMinutes / 60;
-    const totalPrice = tutor.hourlyRate * durationHours;
-
-    // ========== Proper numeric overlap detection ==========
-    // Fetch all confirmed bookings for this tutor on this date
-    const sameDayBookings = await Booking.find({
-      tutorId,
-      sessionDate: new Date(sessionDate),
-      status: { $in: ['confirmed', 'completed'] },
-    });
-
-    // Check each existing booking for time overlap using numeric minutes comparison
-    const hasConflict = sameDayBookings.some(existing => {
-      const [eStartH, eStartM] = existing.startTime.split(':').map(Number);
-      const [eEndH, eEndM] = existing.endTime.split(':').map(Number);
-      const existingStart = eStartH * 60 + eStartM;
-      const existingEnd = eEndH * 60 + eEndM;
-
-      // Two intervals overlap if: newStart < existingEnd AND newEnd > existingStart
-      return startTotalMin < existingEnd && endTotalMin > existingStart;
-    });
-
-    if (hasConflict) {
-      return res.status(400).json({ message: 'Tutor is not available at this time. Please choose a different slot.' });
-    }
-
-    // Create booking
-    const booking = new Booking({
-      studentId: req.user.id,
-      tutorId,
-      studentName: `${student.firstName} ${student.lastName}`,
-      tutorName: `${tutor.firstName} ${tutor.lastName}`,
-      subject,
-      sessionDate: new Date(sessionDate),
-      startTime,
-      endTime,
-      durationMinutes,
-      hourlyRate: tutor.hourlyRate,
-      totalPrice,
-      notes: notes || '',
-      status: 'confirmed',
-    });
-
-    await booking.save();
-
-    // Send confirmation email to student
-    const emailContent = bookingConfirmationEmail(
-      booking.studentName,
-      booking.tutorName,
-      booking.subject,
-      booking.sessionDate,
-      booking.startTime,
-      booking.endTime,
-      booking.totalPrice
-    );
-    sendEmail(student.email, '🎓 Booking Confirmed - EduSnap', emailContent).catch(err => 
-      console.log('Email send error (non-blocking):', err.message)
-    );
-
-    res.status(201).json({
-      message: 'Booking created successfully',
-      booking: {
-        id: booking._id,
-        tutorName: booking.tutorName,
-        subject: booking.subject,
-        sessionDate: booking.sessionDate,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        totalPrice: booking.totalPrice,
-        status: booking.status,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// ========== GET BOOKINGS ==========
-
-// Get student's bookings
-router.get('/my-bookings', verifyToken, async (req, res) => {
-  try {
-    let filter = {};
-
-    if (req.user.role === 'student') {
-      filter.studentId = req.user.id;
-    } else if (req.user.role === 'tutor') {
-      filter.tutorId = req.user.id;
-    } else {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-
-    const bookings = await Booking.find(filter).sort({ sessionDate: 1 });
-
-    res.status(200).json({
-      count: bookings.length,
-      bookings,
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// Get upcoming bookings for student
-router.get('/upcoming', verifyToken, async (req, res) => {
-  try {
-    if (req.user.role !== 'student') {
-      return res.status(403).json({ message: 'Only students can view this' });
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const bookings = await Booking.find({
-      studentId: req.user.id,
-      sessionDate: { $gte: today },
-      status: { $in: ['confirmed', 'completed'] },
-    }).sort({ sessionDate: 1 });
-
-    res.status(200).json({
-      count: bookings.length,
-      bookings,
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// Get specific booking
-router.get('/:id', verifyToken, async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id);
-
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
-    }
-
-    // Verify user owns this booking
-    if (
-      booking.studentId.toString() !== req.user.id &&
-      booking.tutorId.toString() !== req.user.id
-    ) {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-
-    res.status(200).json({ booking });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// ========== CANCEL BOOKING ==========
-
-// Cancel booking (student or tutor)
-router.put('/:id/cancel', verifyToken, async (req, res) => {
-  try {
-    const { reason } = req.body;
-
-    const booking = await Booking.findById(req.params.id);
-
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
-    }
-
-    // Verify user owns this booking
-    if (
-      booking.studentId.toString() !== req.user.id &&
-      booking.tutorId.toString() !== req.user.id
-    ) {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-
-    // Only confirmed bookings can be cancelled
-    if (booking.status !== 'confirmed') {
-      return res.status(400).json({ message: 'Only confirmed bookings can be cancelled' });
-    }
-
-    booking.status = 'cancelled';
-    booking.cancelReason = reason || 'Cancelled by user';
-    await booking.save();
-
-    // Send cancellation emails
-    const Student = require('../models/Student');
-    const student = await Student.findById(booking.studentId);
-    const tutor = await Tutor.findById(booking.tutorId);
-
-    if (student && student.email) {
-      const emailContent = cancellationEmail(
-        booking.studentName,
-        booking.tutorName,
-        booking.subject,
-        booking.sessionDate,
-        reason || 'Cancelled'
-      );
-      sendEmail(student.email, '❌ Booking Cancelled - EduSnap', emailContent).catch(err => 
-        console.log('Email send error (non-blocking):', err.message)
-      );
-    }
-
-    if (tutor && tutor.email) {
-      const emailContent = cancellationEmail(
-        booking.tutorName,
-        booking.studentName,
-        booking.subject,
-        booking.sessionDate,
-        reason || 'Cancelled'
-      );
-      sendEmail(tutor.email, '❌ Booking Cancelled - EduSnap', emailContent).catch(err => 
-        console.log('Email send error (non-blocking):', err.message)
-      );
-    }
-
-    res.status(200).json({
-      message: 'Booking cancelled successfully',
-      booking,
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// ========== ADD FEEDBACK ==========
-
-// Add feedback to completed booking (students only)
-router.put('/:id/feedback', verifyToken, async (req, res) => {
-  try {
-    if (req.user.role !== 'student') {
-      return res.status(403).json({ message: 'Only students can leave feedback' });
-    }
-
-    const { rating, feedback } = req.body;
-
-    if (!rating || rating < 0 || rating > 5) {
-      return res.status(400).json({ message: 'Rating must be between 0 and 5' });
-    }
-
-    const booking = await Booking.findById(req.params.id);
-
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
-    }
-
-    // Verify student owns this booking
-    if (booking.studentId.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-
-    // Only completed bookings can have feedback
-    if (booking.status !== 'completed') {
-      return res.status(400).json({ message: 'Only completed bookings can have feedback' });
-    }
-
-    booking.rating = rating;
-    booking.feedback = feedback || '';
-    await booking.save();
-
-    // Update tutor's average rating
-    const allFeedback = await Booking.find({
-      tutorId: booking.tutorId,
-      rating: { $exists: true },
-    });
-
-    if (allFeedback.length > 0) {
-      const avgRating = allFeedback.reduce((sum, b) => sum + (b.rating || 0), 0) / allFeedback.length;
-      await Tutor.updateOne(
-        { _id: booking.tutorId },
-        {
-          ratings: parseFloat(avgRating.toFixed(1)),
-          totalReviews: allFeedback.length,
-        }
-      );
-    }
-
-    // Send feedback notification email to tutor
-    const tutor = await Tutor.findById(booking.tutorId);
-    if (tutor && tutor.email) {
-      const emailContent = feedbackReceivedEmail(
-        booking.tutorName,
-        booking.studentName,
-        booking.subject,
-        rating,
-        feedback
-      );
-      sendEmail(tutor.email, '⭐ You Received Feedback - EduSnap', emailContent).catch(err => 
-        console.log('Email send error (non-blocking):', err.message)
-      );
-    }
-
-    res.status(200).json({
-      message: 'Feedback added successfully',
-      booking,
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
+// Add feedback (students only)
+router.put('/:id/feedback', verifyToken, restrictTo('student'), validateFeedback, catchAsync(bookingController.addFeedback));
 
 module.exports = router;

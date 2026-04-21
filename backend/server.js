@@ -103,15 +103,37 @@ app.get('*', (req, res) => {
 });
 
 // ========== GLOBAL ERROR HANDLER ==========
-// Must be after all routes — catches unhandled errors
+// Must be after all routes — catches unhandled errors from catchAsync + AppError
 app.use((err, req, res, next) => {
-  console.error('❌ Unhandled Error:', err);
+  // Default values
+  err.statusCode = err.statusCode || 500;
 
-  const statusCode = err.statusCode || 500;
   const isProduction = process.env.NODE_ENV === 'production';
 
-  res.status(statusCode).json({
-    message: isProduction ? 'Something went wrong' : err.message,
+  // Handle specific Mongoose errors
+  if (err.name === 'CastError') {
+    err.message = `Invalid ${err.path}: ${err.value}`;
+    err.statusCode = 400;
+    err.isOperational = true;
+  }
+  if (err.code === 11000) {
+    err.message = 'Duplicate value entered';
+    err.statusCode = 400;
+    err.isOperational = true;
+  }
+  if (err.name === 'ValidationError') {
+    err.message = Object.values(err.errors).map(e => e.message).join(', ');
+    err.statusCode = 400;
+    err.isOperational = true;
+  }
+
+  // Log unexpected errors
+  if (!err.isOperational) {
+    console.error('❌ UNEXPECTED ERROR:', err);
+  }
+
+  res.status(err.statusCode).json({
+    message: err.isOperational || !isProduction ? err.message : 'Something went wrong',
     ...(isProduction ? {} : { stack: err.stack }),
   });
 });
