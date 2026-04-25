@@ -8,7 +8,7 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -62,8 +62,8 @@
     }
 
     .role-tab.active {
-      border-color: #667eea;
-      background: #667eea;
+      border-color: #5BD1D7;
+      background: #5BD1D7;
       color: white;
     }
 
@@ -90,14 +90,14 @@
 
     .form-group input:focus {
       outline: none;
-      border-color: #667eea;
+      border-color: #5BD1D7;
       box-shadow: 0 0 5px rgba(102, 126, 234, 0.1);
     }
 
     .btn-login {
       width: 100%;
       padding: 12px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       color: white;
       border: none;
       border-radius: 5px;
@@ -124,7 +124,7 @@
     }
 
     .form-footer a {
-      color: #667eea;
+      color: #5BD1D7;
       text-decoration: none;
       font-weight: 600;
     }
@@ -231,9 +231,9 @@
           throw new Error(data.message || 'Login failed');
         }
 
-        // Save token to localStorage
+        // Save token to localStorage — use backend response role (not form selection)
         localStorage.setItem('authToken', data.token);
-        localStorage.setItem('userRole', selectedRole);
+        localStorage.setItem('userRole', data.user.role || selectedRole);
         localStorage.setItem('userId', data.user.id);
         localStorage.setItem('firstName', data.user.firstName || '');
         localStorage.setItem('lastName', data.user.lastName || '');

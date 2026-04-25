@@ -39,7 +39,7 @@
     .logo {
       font-size: 22px;
       font-weight: 700;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -61,7 +61,7 @@
     }
 
     .header-links a:hover {
-      color: #667eea;
+      color: #5BD1D7;
     }
 
     .logout-btn {
@@ -95,7 +95,7 @@
     }
 
     .breadcrumb a {
-      color: #667eea;
+      color: #5BD1D7;
       text-decoration: none;
       cursor: pointer;
     }
@@ -152,7 +152,7 @@
     .form-group select:focus,
     .form-group textarea:focus {
       outline: none;
-      border-color: #667eea;
+      border-color: #5BD1D7;
       box-shadow: 0 0 5px rgba(102, 126, 234, 0.1);
     }
 
@@ -194,7 +194,7 @@
     .booking-btn {
       width: 100%;
       padding: 14px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       color: white;
       border: none;
       border-radius: 6px;
@@ -223,7 +223,7 @@
     }
 
     .tutor-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       color: white;
       padding: 30px 20px;
       text-align: center;
@@ -290,7 +290,7 @@
       padding-top: 10px;
       border-top: 1px solid #ddd;
       font-weight: 600;
-      color: #667eea;
+      color: #5BD1D7;
     }
 
     .loading {
@@ -358,7 +358,12 @@
           <!-- Date -->
           <div class="form-group">
             <label for="sessionDate">Session Date *</label>
-            <input type="date" id="sessionDate" required>
+            <input type="date" id="sessionDate" required onchange="updateAvailableSlots()">
+          </div>
+
+          <!-- Available Slots Info -->
+          <div class="form-group" id="availableSlotsInfo" style="background: #e8f5f7; padding: 12px; border-radius: 6px; display: none;">
+            <small><strong>Available Hours:</strong> <span id="availableHours">-</span></small>
           </div>
 
           <!-- Time -->
@@ -418,11 +423,11 @@
             </div>
             <div class="breakdown-row">
               <span>Rate</span>
-              <span id="breakdownRate">$-- /hr</span>
+              <span id="breakdownRate">₹-- /hr</span>
             </div>
             <div class="breakdown-row">
               <span>Total Price</span>
-              <span id="totalPrice">$--</span>
+              <span id="totalPrice">₹--</span>
             </div>
           </div>
         </div>
@@ -470,6 +475,17 @@
 
       await loadTutorInfo();
       setMinDate();
+
+      // ISSUE 3 FIX: Navigation guard — warn if booking form has data
+      window.addEventListener('beforeunload', (e) => {
+        const hasData = document.getElementById('sessionDate')?.value || 
+                        document.getElementById('startTime')?.value;
+        const formHidden = document.getElementById('bookingForm')?.style.display === 'none';
+        if (hasData && !formHidden) {
+          e.preventDefault();
+          e.returnValue = 'You have a booking in progress. Are you sure you want to leave?';
+        }
+      });
     });
 
     // Load tutor info
@@ -489,12 +505,12 @@
     function renderTutorSummary() {
       document.getElementById('tutorName').textContent = `${tutorData.firstName} ${tutorData.lastName}`;
       document.getElementById('tutorSubjects').textContent = tutorData.subjects.join(', ');
-      document.getElementById('tutorRate').textContent = `$${tutorData.hourlyRate}/hour`;
+      document.getElementById('tutorRate').textContent = `₹${tutorData.hourlyRate}/hour`;
       document.getElementById('tutorRating').textContent = tutorData.ratings ? `${tutorData.ratings.toFixed(1)} ⭐` : 'New Tutor';
       document.getElementById('tutorReviews').textContent = `${tutorData.totalReviews || 0} reviews`;
 
       // Set breakdown rate
-      document.getElementById('breakdownRate').textContent = `$${tutorData.hourlyRate} /hr`;
+      document.getElementById('breakdownRate').textContent = `₹${tutorData.hourlyRate} /hr`;
     }
 
     // Set minimum date to today
@@ -521,7 +537,42 @@
 
       const totalPrice = calculatePrice(tutorData.hourlyRate, duration);
       document.getElementById('breakdownDuration').textContent = `${duration.toFixed(1)} hrs`;
-      document.getElementById('totalPrice').textContent = `$${totalPrice.toFixed(2)}`;
+      document.getElementById('totalPrice').textContent = `₹${totalPrice.toFixed(0)}`;
+    }
+
+    // Update available slots when date changes
+    function updateAvailableSlots() {
+      const sessionDate = document.getElementById('sessionDate').value;
+      if (!sessionDate || !tutorData?.availability) {
+        document.getElementById('availableSlotsInfo').style.display = 'none';
+        return;
+      }
+
+      const date = new Date(sessionDate);
+      const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][
+        date.getDay()
+      ];
+
+      const availability = tutorData.availability[dayOfWeek];
+      const slotsDiv = document.getElementById('availableSlotsInfo');
+
+      if (!availability || !availability.start || !availability.end) {
+        slotsDiv.innerHTML = '<small style="color: #d32f2f;"><strong>⚠ Not Available</strong> - Tutor is not available on this day</small>';
+        slotsDiv.style.display = 'block';
+        document.getElementById('startTime').disabled = true;
+        document.getElementById('endTime').disabled = true;
+      } else {
+        slotsDiv.innerHTML = `<small><strong>✓ Available:</strong> ${availability.start} - ${availability.end}</small>`;
+        slotsDiv.style.display = 'block';
+        document.getElementById('startTime').disabled = false;
+        document.getElementById('endTime').disabled = false;
+        
+        // Set input constraints
+        document.getElementById('startTime').min = availability.start;
+        document.getElementById('startTime').max = availability.end;
+        document.getElementById('endTime').min = availability.start;
+        document.getElementById('endTime').max = availability.end;
+      }
     }
 
     // Submit booking
@@ -555,13 +606,25 @@
         };
 
         const response = await createBooking(bookingData);
+        const bookingId = response.booking?._id || response.booking?.id;
 
-        successMsg.textContent = `✓ Booking confirmed! Session scheduled for ${formatDate(sessionDate)} at ${formatTime(startTime)}`;
+        // Rich success UX with next-step options
+        successMsg.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 10px;">🎉</div>
+            <h3 style="margin-bottom: 8px; color: #155724;">Booking Confirmed!</h3>
+            <p style="margin-bottom: 15px;">Session scheduled for <strong>${formatDate(sessionDate)}</strong> at <strong>${formatTime(startTime)}</strong></p>
+            <p style="color: #666; font-size: 13px; margin-bottom: 20px;">Your tutor will be notified. You can message them to discuss session details.</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+              ${bookingId ? `<a href="chat.html?bookingId=${bookingId}" style="text-decoration:none;"><button style="padding:10px 20px;background:#5BD1D7;color:white;border:none;border-radius:5px;font-weight:600;cursor:pointer;">💬 Message Tutor</button></a>` : ''}
+              <a href="dashboard.html" style="text-decoration:none;"><button style="padding:10px 20px;background:#f0f0f0;color:#333;border:none;border-radius:5px;font-weight:600;cursor:pointer;">📊 Go to Dashboard</button></a>
+            </div>
+          </div>
+        `;
         successMsg.style.display = 'block';
 
-        setTimeout(() => {
-          window.location.href = 'dashboard.html';
-        }, 2000);
+        // Hide the form
+        document.getElementById('bookingForm').style.display = 'none';
       } catch (error) {
         errorMsg.textContent = '✗ ' + error.message;
         errorMsg.style.display = 'block';

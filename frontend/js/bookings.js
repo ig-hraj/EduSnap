@@ -200,7 +200,7 @@ const calculatePrice = (hourlyRate, duration) => {
 const getStatusColor = (status) => {
   switch (status) {
     case 'confirmed':
-      return '#667eea';
+      return '#5BD1D7';
     case 'completed':
       return '#27ae60';
     case 'cancelled':

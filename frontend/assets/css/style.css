@@ -38,7 +38,7 @@ button {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
   color: white;
 }
 
@@ -75,7 +75,7 @@ button {
 }
 
 .card-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
   color: white;
   padding: 15px 20px;
   border-radius: 10px 10px 0 0;
@@ -122,7 +122,7 @@ button {
 .form-group textarea:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #5BD1D7;
   box-shadow: 0 0 5px rgba(102, 126, 234, 0.1);
 }
 
@@ -242,13 +242,13 @@ p {
 .p-30 { padding: 30px; }
 
 /* Colors */
-.text-primary { color: #667eea; }
+.text-primary { color: #5BD1D7; }
 .text-success { color: #27ae60; }
 .text-danger { color: #e74c3c; }
 .text-warning { color: #f39c12; }
 .text-muted { color: #999; }
 
-.bg-primary { background: #667eea; }
+.bg-primary { background: #5BD1D7; }
 .bg-success { background: #27ae60; }
 .bg-danger { background: #e74c3c; }
 
@@ -261,7 +261,7 @@ p {
 
 .spinner {
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
+  border-top: 4px solid #5BD1D7;
   border-radius: 50%;
   width: 30px;
   height: 30px;
@@ -465,10 +465,10 @@ tbody tr:hover {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #667eea;
+  background: #5BD1D7;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #5568d3;
+  background: #3EA5AB;
 }

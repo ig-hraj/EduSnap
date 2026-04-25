@@ -39,7 +39,7 @@
     .logo {
       font-size: 22px;
       font-weight: 700;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -61,7 +61,7 @@
     }
 
     .header-links a:hover {
-      color: #667eea;
+      color: #5BD1D7;
     }
 
     .logout-btn {
@@ -95,7 +95,7 @@
     }
 
     .breadcrumb a {
-      color: #667eea;
+      color: #5BD1D7;
       text-decoration: none;
       cursor: pointer;
     }
@@ -114,7 +114,7 @@
     }
 
     .profile-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       color: white;
       padding: 50px 30px;
       text-align: center;
@@ -187,7 +187,7 @@
     }
 
     .subject-badge {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       color: white;
       padding: 10px 15px;
       border-radius: 6px;
@@ -209,7 +209,7 @@
       padding: 12px;
       border-radius: 6px;
       text-align: center;
-      border-left: 3px solid #667eea;
+      border-left: 3px solid #5BD1D7;
     }
 
     .slot-day {
@@ -240,7 +240,7 @@
       background: #f9fafb;
       padding: 20px;
       border-radius: 8px;
-      border-left: 4px solid #667eea;
+      border-left: 4px solid #5BD1D7;
     }
 
     .info-label {
@@ -254,7 +254,7 @@
     .info-value {
       font-size: 24px;
       font-weight: 700;
-      color: #667eea;
+      color: #5BD1D7;
     }
 
     .info-unit {
@@ -267,7 +267,7 @@
     .book-btn {
       width: 100%;
       padding: 16px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       color: white;
       border: none;
       border-radius: 8px;
@@ -286,8 +286,8 @@
       width: 100%;
       padding: 12px;
       background: white;
-      color: #667eea;
-      border: 2px solid #667eea;
+      color: #5BD1D7;
+      border: 2px solid #5BD1D7;
       border-radius: 8px;
       font-size: 14px;
       font-weight: 600;
@@ -296,7 +296,7 @@
     }
 
     .message-btn:hover {
-      background: #f0f4ff;
+      background: #E6F9FA;
     }
 
     /* Loading State */
@@ -388,6 +388,12 @@
                 <!-- Populated dynamically -->
               </div>
             </div>
+
+            <!-- Student Reviews -->
+            <div class="profile-section">
+              <div class="section-title">⭐ Student Reviews</div>
+              <div id="reviewsList" style="color:#999;">Loading reviews...</div>
+            </div>
           </div>
 
           <!-- Right Sidebar -->
@@ -456,9 +462,16 @@
     // Load tutor profile
     async function loadTutorProfile() {
       try {
-        const response = await getTutorById(tutorId);
+        const [response, reviewsRes] = await Promise.all([
+          getTutorById(tutorId),
+          fetch(`${API_URL}/bookings/reviews/${tutorId}`),
+        ]);
         tutorData = response.tutor;
+        const reviewsData = await reviewsRes.json();
+        const reviews = reviewsData.reviews || [];
+
         renderProfile();
+        renderReviews(reviews);
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('profileContent').style.display = 'block';
       } catch (error) {
@@ -514,7 +527,26 @@
     // Send message
     function sendMessage() {
       alert('Messaging feature coming soon! You can chat with ' + tutorData.firstName + '.');
-      // In future, this will open a message interface
+    }
+
+    // Render reviews
+    function renderReviews(reviews) {
+      const container = document.getElementById('reviewsList');
+      if (!reviews || reviews.length === 0) {
+        container.innerHTML = '<p style="color:#999;font-size:14px;">No reviews yet. Be the first to leave one!</p>';
+        return;
+      }
+
+      container.innerHTML = reviews.map(r => `
+        <div style="padding:15px 0;border-bottom:1px solid #f0f0f0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-weight:600;">${r.studentName}</span>
+            <span style="color:#f4c150;font-weight:700;">${'⭐'.repeat(r.rating)} ${r.rating}/5</span>
+          </div>
+          ${r.feedback ? `<p style="color:#666;font-size:14px;line-height:1.6;">${r.feedback}</p>` : ''}
+          <p style="color:#bbb;font-size:12px;margin-top:6px;">${r.subject} · ${new Date(r.sessionDate).toLocaleDateString()}</p>
+        </div>
+      `).join('');
     }
 
     // Show error

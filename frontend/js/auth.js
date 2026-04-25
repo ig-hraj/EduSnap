@@ -39,7 +39,7 @@ const logout = () => {
   localStorage.removeItem('userId');
   localStorage.removeItem('firstName');
   localStorage.removeItem('lastName');
-  window.location.href = 'login.html';
+  window.location.href = '/pages/login.html';
 };
 
 // Make authenticated API request

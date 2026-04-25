@@ -10,7 +10,7 @@
             display: flex;
             flex-direction: column;
             height: 90vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -112,12 +112,12 @@
         }
 
         .tutor-role {
-            background: #667eea;
+            background: #5BD1D7;
             color: white;
         }
 
         .student-role {
-            background: #764ba2;
+            background: #4AB8BE;
             color: white;
         }
 
@@ -134,7 +134,7 @@
         }
 
         .own-message .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
             color: white;
             border-bottom-right-radius: 4px;
         }
@@ -147,7 +147,7 @@
 
         .unread-indicator {
             font-size: 0.8rem;
-            color: #667eea;
+            color: #5BD1D7;
             margin-top: 4px;
         }
 
@@ -188,7 +188,7 @@
             width: 30px;
             height: 30px;
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid #5BD1D7;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-right: 10px;
@@ -231,7 +231,7 @@
 
         .chat-input:focus {
             background: white;
-            border-color: #667eea;
+            border-color: #5BD1D7;
         }
 
         .char-count {
@@ -242,7 +242,7 @@
 
         .send-btn {
             padding: 12px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
             color: white;
             border: none;
             border-radius: 20px;
@@ -313,9 +313,9 @@
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <h1>🎓 EduSnap - Session Chat</h1>
-        <button id="logoutBtn" class="btn">Logout</button>
+    <div class="navbar" style="background:linear-gradient(135deg,#5BD1D7,#4AB8BE);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;">
+        <a href="dashboard.html" style="color:white;text-decoration:none;font-size:1.1rem;font-weight:600;">← Back to Dashboard</a>
+        <span style="color:rgba(255,255,255,0.8);font-size:0.9rem;">🎓 EduSnap Chat</span>
     </div>
 
     <div class="container">
@@ -395,7 +395,8 @@
             // Initialize Socket.IO connection and listeners
             try {
                 initSocket();
-                initializeSocketListeners();
+                // ISSUE 5 FIX: Wait for socket connection before registering listeners
+                waitForSocketAndJoin();
             } catch (e) {
                 console.warn('Socket.IO init failed (non-blocking):', e.message);
             }
@@ -403,8 +404,14 @@
             // Setup input event listeners
             setupInputListeners();
 
-            // Setup logout
-            document.getElementById('logoutBtn').addEventListener('click', logout);
+            // ISSUE 3 FIX: Navigation guard — warn if message is being typed
+            window.addEventListener('beforeunload', (e) => {
+                const input = document.getElementById('messageInput');
+                if (input && input.value.trim().length > 0) {
+                    e.preventDefault();
+                    e.returnValue = 'You have an unsent message. Are you sure you want to leave?';
+                }
+            });
         });
 
         /**
@@ -541,7 +548,36 @@
         }
 
         /**
-         * Initialize Socket.IO listeners
+         * ISSUE 5 FIX: Wait for socket connection, then register listeners.
+         * Handles both initial connection and reconnections.
+         */
+        function waitForSocketAndJoin() {
+            const sock = getSocket();
+            if (!sock) {
+                console.warn('Socket not available, retrying in 1s...');
+                setTimeout(waitForSocketAndJoin, 1000);
+                return;
+            }
+
+            if (sock.connected) {
+                initializeSocketListeners();
+            } else {
+                // Socket exists but not connected yet — listen for connect event
+                sock.once('connect', () => {
+                    console.log('✓ Socket connected, registering chat listeners...');
+                    initializeSocketListeners();
+                });
+            }
+
+            // Re-join room on reconnection
+            sock.on('reconnect', () => {
+                console.log('🔄 Socket reconnected, re-joining room...');
+                sock.emit('join:booking-room', { bookingId: currentBookingId });
+            });
+        }
+
+        /**
+         * Initialize Socket.IO listeners for chat
          */
         function initializeSocketListeners() {
             const sock = getSocket();
@@ -557,9 +593,18 @@
                 // Skip if this is our own message (already added via API response)
                 if (data.senderId === currentUserId) return;
 
+                // Deduplicate: skip if message already displayed
+                if (data._id && allMessages.some(m => m._id === data._id)) return;
+
                 const messageElement = createMessageElement(data, currentUserId);
-                document.getElementById('messagesArea').appendChild(messageElement);
-                document.getElementById('messagesArea').scrollTop = document.getElementById('messagesArea').scrollHeight;
+                const messagesArea = document.getElementById('messagesArea');
+
+                // Remove "no messages" placeholder if present
+                const noMsg = messagesArea.querySelector('.no-messages');
+                if (noMsg) noMsg.remove();
+
+                messagesArea.appendChild(messageElement);
+                messagesArea.scrollTop = messagesArea.scrollHeight;
                 allMessages.push(data);
 
                 // Mark as read immediately
@@ -595,6 +640,12 @@
                         unreadIndicator.remove();
                     }
                 }
+            });
+
+            // Listen for errors
+            sock.on('error:chat', (data) => {
+                console.error('Chat socket error:', data.message);
+                if (typeof showError === 'function') showError('Chat Error', data.message);
             });
         }
 

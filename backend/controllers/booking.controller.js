@@ -87,3 +87,21 @@ exports.addFeedback = async (req, res) => {
     booking,
   });
 };
+
+// GET /api/bookings/dashboard-stats
+exports.getDashboardStats = async (req, res) => {
+  const stats = await bookingService.getDashboardStats(req.user.id, req.user.role);
+  res.status(200).json({ stats });
+};
+
+// GET /api/bookings/reviews/:tutorId
+exports.getReviews = async (req, res) => {
+  const reviews = await bookingService.getReviewsForTutor(req.params.tutorId);
+  res.status(200).json({ count: reviews.length, reviews });
+};
+
+// GET /api/bookings/my-students
+exports.getMyStudents = async (req, res) => {
+  const students = await bookingService.getStudentsByTutor(req.user.id);
+  res.status(200).json({ count: students.length, students });
+};

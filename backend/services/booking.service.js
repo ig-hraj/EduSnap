@@ -61,7 +61,32 @@ async function createBooking(studentId, data) {
   const durationHours = durationMinutes / 60;
   const totalPrice = tutor.hourlyRate * durationHours;
 
-  // 3. Check for time conflicts (numeric comparison — no string issues)
+  // 3. Check tutor availability for the selected day
+  const sessionDateObj = new Date(sessionDate);
+  const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][
+    sessionDateObj.getDay()
+  ];
+  
+  const tutorAvailability = tutor.availability[dayOfWeek];
+  if (!tutorAvailability || !tutorAvailability.start || !tutorAvailability.end) {
+    throw new AppError(
+      `Tutor is not available on ${dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1)}s. Please choose a different date.`,
+      400
+    );
+  }
+
+  // Check if requested time falls within availability window
+  const availStart = timeToMinutes(tutorAvailability.start);
+  const availEnd = timeToMinutes(tutorAvailability.end);
+
+  if (startMin < availStart || endMin > availEnd) {
+    throw new AppError(
+      `Your requested time (${startTime}-${endTime}) is outside tutor's availability (${tutorAvailability.start}-${tutorAvailability.end}). Please choose a different time.`,
+      400
+    );
+  }
+
+  // 4. Check for time conflicts (numeric comparison — no string issues)
   const sameDayBookings = await Booking.find({
     tutorId,
     sessionDate: new Date(sessionDate),
@@ -78,7 +103,7 @@ async function createBooking(studentId, data) {
     throw new AppError('Tutor is not available at this time. Please choose a different slot.', 400);
   }
 
-  // 4. Create and save booking
+  // 5. Create and save booking
   const booking = await Booking.create({
     studentId,
     tutorId,
@@ -255,6 +280,76 @@ async function addFeedback(bookingId, studentId, rating, feedbackText) {
   return booking;
 }
 
+/**
+ * Get dashboard stats for a user (earnings, hours, etc.).
+ */
+async function getDashboardStats(userId, role) {
+  const filterKey = role === 'student' ? 'studentId' : 'tutorId';
+
+  const [completed, upcoming] = await Promise.all([
+    Booking.find({ [filterKey]: userId, status: 'completed' }),
+    Booking.find({ [filterKey]: userId, status: 'confirmed', sessionDate: { $gte: new Date() } }),
+  ]);
+
+  const all = await Booking.find({ [filterKey]: userId });
+  const totalEarnings = completed.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+  const totalHours = completed.reduce((sum, b) => sum + ((b.durationMinutes || 0) / 60), 0);
+  const upcomingEarnings = upcoming.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+  const uniqueOthers = new Set(all.map(b =>
+    role === 'student' ? b.tutorId.toString() : b.studentId.toString()
+  )).size;
+
+  return {
+    totalSessions: all.length,
+    completedSessions: completed.length,
+    upcomingSessions: upcoming.length,
+    totalEarnings,
+    upcomingEarnings,
+    totalHours: parseFloat(totalHours.toFixed(1)),
+    uniqueOthers, // students for tutor, tutors for student
+  };
+}
+
+/**
+ * Get reviews (rated bookings) for a tutor.
+ */
+async function getReviewsForTutor(tutorId) {
+  const reviews = await Booking.find({
+    tutorId,
+    rating: { $exists: true, $ne: null },
+  })
+    .select('studentName subject rating feedback sessionDate createdAt')
+    .sort({ createdAt: -1 });
+
+  return reviews;
+}
+
+/**
+ * Get unique students for a tutor, with aggregated session data.
+ */
+async function getStudentsByTutor(tutorId) {
+  const students = await Booking.aggregate([
+    { $match: { tutorId: require('mongoose').Types.ObjectId(tutorId) } },
+    {
+      $group: {
+        _id: '$studentId',
+        studentName: { $first: '$studentName' },
+        totalSessions: { $sum: 1 },
+        totalRevenue: { $sum: '$totalPrice' },
+        totalMinutes: { $sum: '$durationMinutes' },
+        lastSession: { $max: '$sessionDate' },
+        subjects: { $addToSet: '$subject' },
+        completedSessions: {
+          $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] },
+        },
+      },
+    },
+    { $sort: { lastSession: -1 } },
+  ]);
+
+  return students;
+}
+
 module.exports = {
   createBooking,
   getMyBookings,
@@ -262,4 +357,7 @@ module.exports = {
   getBookingById,
   cancelBooking,
   addFeedback,
+  getDashboardStats,
+  getReviewsForTutor,
+  getStudentsByTutor,
 };

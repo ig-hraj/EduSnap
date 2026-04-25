@@ -39,7 +39,7 @@
     .logo {
       font-size: 24px;
       font-weight: 700;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -59,7 +59,7 @@
     }
 
     .nav-links a:hover {
-      color: #667eea;
+      color: #5BD1D7;
     }
 
     .btn {
@@ -75,7 +75,7 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       color: white;
     }
 
@@ -86,18 +86,18 @@
 
     .btn-secondary {
       background: white;
-      color: #667eea;
-      border: 2px solid #667eea;
+      color: #5BD1D7;
+      border: 2px solid #5BD1D7;
     }
 
     .btn-secondary:hover {
-      background: #667eea;
+      background: #5BD1D7;
       color: white;
     }
 
     /* Hero Section */
     .hero {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       color: white;
       padding: 100px 20px;
       text-align: center;
@@ -131,7 +131,7 @@
 
     .btn-white {
       background: white;
-      color: #667eea;
+      color: #5BD1D7;
       padding: 14px 40px;
       font-size: 16px;
     }
@@ -186,7 +186,7 @@
     .stat-number {
       font-size: 32px;
       font-weight: 700;
-      color: #667eea;
+      color: #5BD1D7;
       margin-bottom: 8px;
     }
 
@@ -196,7 +196,7 @@
     }
 
     .about-image {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       border-radius: 10px;
       height: 400px;
       display: flex;
@@ -250,7 +250,7 @@
     }
 
     .feature-card:hover {
-      border-color: #667eea;
+      border-color: #5BD1D7;
       transform: translateY(-5px);
       box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
     }
@@ -295,7 +295,7 @@
     .step-number {
       width: 60px;
       height: 60px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       color: white;
       border-radius: 50%;
       display: flex;
@@ -321,7 +321,7 @@
 
     /* CTA Section */
     .cta-section {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       color: white;
       padding: 80px 20px;
       text-align: center;
@@ -377,7 +377,7 @@
     }
 
     .footer-links a:hover {
-      color: #667eea;
+      color: #5BD1D7;
     }
 
     /* Responsive */
@@ -560,8 +560,12 @@
         <a href="#">Terms of Service</a>
         <a href="#">Contact</a>
       </div>
-      <p>&copy; 2024 EduSnap. All rights reserved. | Empowering Education Through Technology</p>
+      <p>&copy; <span id="footerYear">2024</span> EduSnap. All rights reserved. | Empowering Education Through Technology</p>
     </div>
   </footer>
+  <script>
+    // Dynamic footer year
+    document.getElementById('footerYear').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>

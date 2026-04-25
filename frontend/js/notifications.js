@@ -99,7 +99,7 @@ const injectNotificationStyles = () => {
     }
 
     .notification.info {
-      border-left-color: #667eea;
+      border-left-color: #5BD1D7;
     }
 
     .notification.warning {

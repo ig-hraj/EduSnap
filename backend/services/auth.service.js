@@ -159,6 +159,38 @@ async function getCurrentUser(userId, role) {
 
   return sanitizeUser(user, role);
 }
+// ========== UPDATE PROFILE ==========
+
+async function updateProfile(userId, role, updates) {
+  const Model = role === 'student' ? Student : Tutor;
+  const allowedFields = ['firstName', 'lastName'];
+
+  // Tutors can also update these fields
+  if (role === 'tutor') {
+    allowedFields.push('bio', 'subjects', 'hourlyRate');
+  }
+
+  // Filter to only allowed fields
+  const sanitized = {};
+  for (const key of allowedFields) {
+    if (updates[key] !== undefined) {
+      sanitized[key] = updates[key];
+    }
+  }
+
+  if (Object.keys(sanitized).length === 0) {
+    throw new AppError('No valid fields to update', 400);
+  }
+
+  const user = await Model.findByIdAndUpdate(userId, sanitized, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!user) throw new AppError('User not found', 404);
+
+  return sanitizeUser(user, role);
+}
 
 module.exports = {
   signupStudent,
@@ -168,4 +200,5 @@ module.exports = {
   refreshAccessToken,
   getCurrentUser,
   generateAccessToken,
+  updateProfile,
 };

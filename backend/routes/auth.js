@@ -31,4 +31,7 @@ router.post('/refresh',        validateRefresh, catchAsync(authController.refres
 // Protected: get current user
 router.get('/me',              verifyToken, catchAsync(authController.getMe));
 
+// Protected: update profile (both roles)
+router.put('/profile',         verifyToken, catchAsync(authController.updateProfile));
+
 module.exports = router;

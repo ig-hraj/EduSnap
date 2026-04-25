@@ -39,7 +39,7 @@
     .logo {
       font-size: 22px;
       font-weight: 700;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -61,7 +61,7 @@
     }
 
     .header-links a:hover {
-      color: #667eea;
+      color: #5BD1D7;
     }
 
     .logout-btn {
@@ -95,7 +95,7 @@
     }
 
     .breadcrumb a {
-      color: #667eea;
+      color: #5BD1D7;
       text-decoration: none;
       cursor: pointer;
     }
@@ -138,12 +138,12 @@
     }
 
     .tab-btn.active {
-      color: #667eea;
-      border-bottom-color: #667eea;
+      color: #5BD1D7;
+      border-bottom-color: #5BD1D7;
     }
 
     .tab-btn:hover {
-      color: #667eea;
+      color: #5BD1D7;
     }
 
     /* Booking Card */
@@ -181,7 +181,7 @@
     }
 
     .booking-subject {
-      color: #667eea;
+      color: #5BD1D7;
       font-size: 14px;
       font-weight: 600;
     }
@@ -260,7 +260,7 @@
     }
 
     .action-btn.primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       color: white;
       border: none;
     }
@@ -392,7 +392,7 @@
     }
 
     .modal-btn.confirm {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
       color: white;
     }
 
@@ -462,7 +462,7 @@
       <div class="logo" onclick="window.location.href='/'">📚 EduSnap</div>
       <div class="header-links">
         <a href="dashboard.html">Dashboard</a>
-        <a href="tutor-list.html">Find Tutors</a>
+        <a href="tutor-list.html" id="findTutorsLink">Find Tutors</a>
         <button class="logout-btn" onclick="logout()">Logout</button>
       </div>
     </div>
@@ -563,6 +563,13 @@
 
     window.addEventListener('DOMContentLoaded', async () => {
       requireAuth();
+      
+      // ISSUE 2 FIX: Hide student-only nav for tutors
+      if (getUserRole() === 'tutor') {
+        const findTutorsLink = document.getElementById('findTutorsLink');
+        if (findTutorsLink) findTutorsLink.style.display = 'none';
+      }
+
       await loadBookings();
       
       // Initialize Socket.IO
@@ -638,7 +645,7 @@
             ${booking.notes ? `<div style="color: #666; font-size: 13px; margin-top: 10px;">📝 Notes: ${booking.notes}</div>` : ''}
           </div>
           <div class="booking-actions">
-            <button class="action-btn" onclick="openChat('${booking._id}')" style="background: #667eea; color: white;">💬 Chat</button>
+            <button class="action-btn" onclick="openChat('${booking._id}')" style="background: #5BD1D7; color: white;">💬 Chat</button>
             ${booking.status === 'confirmed' ? `
               <button class="action-btn danger" onclick="openCancelModal('${booking._id}')">Cancel</button>
             ` : ''}
@@ -646,7 +653,7 @@
               <button class="action-btn primary" onclick="openFeedbackModal('${booking._id}', '${booking.tutorName}')">Leave Feedback</button>
             ` : ''}
             ${booking.rating ? `
-              <div style="font-size: 12px; color: #667eea; font-weight: 600; padding: 8px;">
+              <div style="font-size: 12px; color: #5BD1D7; font-weight: 600; padding: 8px;">
                 ⭐ ${booking.rating}/5 - Feedback given
               </div>
             ` : ''}

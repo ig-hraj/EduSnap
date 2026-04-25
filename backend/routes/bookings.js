@@ -39,6 +39,15 @@ router.get('/my-bookings', verifyToken, catchAsync(bookingController.getMyBookin
 // Get upcoming bookings (students)
 router.get('/upcoming',    verifyToken, restrictTo('student'), catchAsync(bookingController.getUpcoming));
 
+// Dashboard stats (any authenticated user)
+router.get('/dashboard-stats', verifyToken, catchAsync(bookingController.getDashboardStats));
+
+// Get reviews for a tutor (public — used on tutor profile page)
+router.get('/reviews/:tutorId', catchAsync(bookingController.getReviews));
+
+// Get tutor's students (tutors only)
+router.get('/my-students', verifyToken, restrictTo('tutor'), catchAsync(bookingController.getMyStudents));
+
 // Get single booking by ID
 router.get('/:id',         verifyToken, catchAsync(bookingController.getById));
 

@@ -16,14 +16,40 @@ const createBookingSchema = Joi.object({
     .messages({ 'string.length': 'Invalid tutor ID format' }),
   subject: Joi.string().trim().min(1).max(100).required()
     .messages({ 'string.empty': 'Subject is required' }),
-  sessionDate: Joi.date().iso().min('now').required()
-    .messages({ 'date.min': 'Session date must be in the future' }),
+  sessionDate: Joi.date().iso().required()
+    .custom((value, helpers) => {
+      // Compare date-only (strip time) so same-day bookings aren't rejected
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selected = new Date(value);
+      selected.setHours(0, 0, 0, 0);
+      if (selected < today) {
+        return helpers.error('date.min');
+      }
+      return value;
+    })
+    .messages({ 'date.min': 'Session date cannot be in the past' }),
   startTime: Joi.string().pattern(timePattern).required()
     .messages({ 'string.pattern.base': 'Start time must be HH:MM format (00:00-23:59)' }),
   endTime: Joi.string().pattern(timePattern).required()
     .messages({ 'string.pattern.base': 'End time must be HH:MM format (00:00-23:59)' }),
   notes: Joi.string().trim().max(500).allow('').default(''),
-});
+})
+  // Cross-field validation: reject past time on same day
+  .custom((value, helpers) => {
+    const today = new Date();
+    const selected = new Date(value.sessionDate);
+    // If booking is for today, startTime must be in the future
+    if (selected.toDateString() === today.toDateString()) {
+      const [h, m] = value.startTime.split(':').map(Number);
+      const startMinutes = h * 60 + m;
+      const nowMinutes = today.getHours() * 60 + today.getMinutes();
+      if (startMinutes <= nowMinutes) {
+        return helpers.error('any.custom', { message: 'Start time must be in the future for same-day bookings' });
+      }
+    }
+    return value;
+  });
 
 const cancelBookingSchema = Joi.object({
   reason: Joi.string().trim().max(300).allow('').default('Cancelled by user'),

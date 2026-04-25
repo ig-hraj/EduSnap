@@ -32,3 +32,9 @@ exports.getMe = async (req, res) => {
   const user = await authService.getCurrentUser(req.user.id, req.user.role);
   res.status(200).json({ user });
 };
+
+// PUT /api/auth/profile
+exports.updateProfile = async (req, res) => {
+  const user = await authService.updateProfile(req.user.id, req.user.role, req.body);
+  res.status(200).json({ message: 'Profile updated successfully', user });
+};
