@@ -84,3 +84,13 @@ const redirectIfLoggedIn = () => {
     window.location.href = 'dashboard.html';
   }
 };
+
+// Format number as INR currency using Intl.NumberFormat
+const formatINR = (amount) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
+};

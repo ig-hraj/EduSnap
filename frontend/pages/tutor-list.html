@@ -414,7 +414,7 @@
       </div>
 
       <div class="filter-group">
-        <h3>Hourly Rate ($)</h3>
+        <h3>Hourly Rate (INR)</h3>
         <label>Min:
           <input type="number" id="filterMinRate" placeholder="Min rate" min="0">
         </label>
@@ -530,7 +530,7 @@
             <div class="tutor-bio">${tutor.bio || 'Experienced tutor'}</div>
             <div class="tutor-rating">${createStarRating(tutor.ratings, tutor.totalReviews)}</div>
             <div class="tutor-footer">
-              <span class="tutor-rate">$${tutor.hourlyRate}/hr</span>
+              <span class=\"tutor-rate\">${formatINR(tutor.hourlyRate)}/hr</span>
               <button class="view-btn">View Profile</button>
             </div>
           </div>

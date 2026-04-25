@@ -227,7 +227,7 @@
             </div>
 
             <button id="payButton" class="pay-button" onclick="initiatePayment()">
-                ₹ <span id="payAmount">0</span> - Proceed to Payment
+                <span id="payAmount">0</span> - Proceed to Payment
             </button>
 
             <div class="razorpay-info">
@@ -322,12 +322,12 @@
                 </div>
                 <div class="summary-row price-row">
                     <span class="summary-label">Total Amount</span>
-                    <span class="summary-value">₹${parseFloat(bookingData.totalPrice).toFixed(2)}</span>
+                    <span class="summary-value">${formatINR(bookingData.totalPrice)}</span>
                 </div>
             `;
 
             // Update pay button amount
-            document.getElementById('payAmount').textContent = parseFloat(bookingData.totalPrice).toFixed(2);
+            document.getElementById('payAmount').textContent = formatINR(bookingData.totalPrice);
         }
 
         /**
@@ -381,59 +381,14 @@
                     modal: {
                         ondismiss: function () {
                             payButton.disabled = false;
-                            payButton.innerHTML = `₹ <span id="payAmount">${parseFloat(bookingData.totalPrice).toFixed(2)}</span> - Proceed to Payment`;
-                            showError('Payment cancelled');
-                        },
-                    },
-                };
-
-                // Open Razorpay checkout
-                const rzp = new Razorpay(options);
-                rzp.open();
-            } catch (error) {
-                showError(error.message);
-                payButton.disabled = false;
-                payButton.innerHTML = `₹ <span id="payAmount">${parseFloat(bookingData.totalPrice).toFixed(2)}</span> - Proceed to Payment`;
-            }
-        }
-
-        /**
-         * Handle payment success
-         */
-        async function handlePaymentSuccess(response) {
-            const payButton = document.getElementById('payButton');
-            payButton.disabled = true;
-            payButton.innerHTML = '<div class="loading"><div class="spinner"></div> Verifying Payment...</div>';
-
-            try {
-                const token = getAuthToken();
-                const verifyResponse = await fetch('/api/payments/verify', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        orderId: response.razorpay_order_id,
-                        paymentId: response.razorpay_payment_id,
-                        signature: response.razorpay_signature,
-                    }),
-                });
-
-                if (!verifyResponse.ok) {
-                    const error = await verifyResponse.json();
-                    throw new Error(error.message || 'Payment verification failed');
-                }
-
-                // Payment successful
-                showSuccess('💳 Payment successful! Your booking is confirmed.');
+                            payButton.innerHTML = `${formatINR(bookingData.totalPrice)} - Proceed to Payment`;
                 setTimeout(() => {
                     window.location.href = `/pages/booking-history.html`;
                 }, 2000);
             } catch (error) {
                 showError('Payment verification failed: ' + error.message);
                 payButton.disabled = false;
-                payButton.innerHTML = `₹ <span id="payAmount">${parseFloat(bookingData.totalPrice).toFixed(2)}</span> - Proceed to Payment`;
+                payButton.innerHTML = `${formatINR(bookingData.totalPrice)} - Proceed to Payment`;
             }
         }
 

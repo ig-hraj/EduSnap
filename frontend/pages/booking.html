@@ -505,12 +505,12 @@
     function renderTutorSummary() {
       document.getElementById('tutorName').textContent = `${tutorData.firstName} ${tutorData.lastName}`;
       document.getElementById('tutorSubjects').textContent = tutorData.subjects.join(', ');
-      document.getElementById('tutorRate').textContent = `₹${tutorData.hourlyRate}/hour`;
+      document.getElementById('tutorRate').textContent = `${formatINR(tutorData.hourlyRate)}/hour`;
       document.getElementById('tutorRating').textContent = tutorData.ratings ? `${tutorData.ratings.toFixed(1)} ⭐` : 'New Tutor';
       document.getElementById('tutorReviews').textContent = `${tutorData.totalReviews || 0} reviews`;
 
       // Set breakdown rate
-      document.getElementById('breakdownRate').textContent = `₹${tutorData.hourlyRate} /hr`;
+      document.getElementById('breakdownRate').textContent = `${formatINR(tutorData.hourlyRate)} /hr`;
     }
 
     // Set minimum date to today
@@ -537,7 +537,7 @@
 
       const totalPrice = calculatePrice(tutorData.hourlyRate, duration);
       document.getElementById('breakdownDuration').textContent = `${duration.toFixed(1)} hrs`;
-      document.getElementById('totalPrice').textContent = `₹${totalPrice.toFixed(0)}`;
+      document.getElementById('totalPrice').textContent = formatINR(totalPrice);
     }
 
     // Update available slots when date changes

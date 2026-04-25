@@ -574,7 +574,7 @@
         document.getElementById('totalSessions').textContent = stats.totalSessions || 0;
         document.getElementById('upcomingSessions').textContent = stats.upcomingSessions || 0;
         document.getElementById('totalHours').textContent = stats.totalHours || 0;
-        document.getElementById('totalSpent').textContent = `$${(stats.totalEarnings || 0).toFixed(0)}`;
+        document.getElementById('totalSpent').textContent = formatINR(stats.totalEarnings || 0);
         document.getElementById('uniqueTutors').textContent = stats.uniqueOthers || 0;
 
         if (bookings.length > 0) {

@@ -176,7 +176,7 @@
         const totalRevenue = students.reduce((sum, s) => sum + s.totalRevenue, 0);
         document.getElementById('totalStudents').textContent = students.length;
         document.getElementById('totalSessionCount').textContent = totalSessions;
-        document.getElementById('totalRevenue').textContent = `$${totalRevenue.toFixed(0)}`;
+        document.getElementById('totalRevenue').textContent = formatINR(totalRevenue);
 
         // Render student cards
         const html = students.map((s, i) => `
@@ -197,7 +197,7 @@
                   <div class="stat-label">Completed</div>
                 </div>
                 <div class="stat-item">
-                  <div class="stat-num">$${s.totalRevenue.toFixed(0)}</div>
+                  <div class="stat-num">${formatINR(s.totalRevenue)}</div>
                   <div class="stat-label">Revenue</div>
                 </div>
               </div>
@@ -264,7 +264,7 @@
             <div>
               <span class="status-badge status-${b.status}">${b.status}</span>
             </div>
-            <div class="session-price">$${b.totalPrice.toFixed(2)}</div>
+            <div class="session-price">${formatINR(b.totalPrice)}</div>
           </div>
         `).join('');
       } catch (error) {

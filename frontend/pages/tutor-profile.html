@@ -509,7 +509,7 @@
         .join('');
 
       // Sidebar Info
-      document.getElementById('tutorRate').textContent = `$${tutorData.hourlyRate}`;
+      document.getElementById('tutorRate').textContent = formatINR(tutorData.hourlyRate) + '/hour';
       document.getElementById('tutorReviews').textContent = tutorData.totalReviews || '0';
       document.getElementById('sidebarRating').textContent = tutorData.ratings ? tutorData.ratings.toFixed(1) : '-';
       document.getElementById('totalReviews').textContent = `Based on ${tutorData.totalReviews || 0} reviews`;

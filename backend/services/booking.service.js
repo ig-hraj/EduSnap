@@ -144,14 +144,24 @@ async function getMyBookings(userId, role) {
  * Get upcoming confirmed bookings for a student.
  */
 async function getUpcomingBookings(studentId) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
+  const now = new Date();
+  
   return Booking.find({
     studentId,
-    sessionDate: { $gte: today },
-    status: { $in: ['confirmed', 'completed'] },
-  }).sort({ sessionDate: 1 });
+    status: 'confirmed',
+    $or: [
+      // Future sessions: sessionDate is in the future
+      { sessionDate: { $gt: now } },
+      // Today's sessions: sessionDate is today AND start time hasn't passed
+      {
+        sessionDate: {
+          $gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+          $lt: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1),
+        },
+        startTime: { $gt: now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }) },
+      },
+    ],
+  }).sort({ sessionDate: 1, startTime: 1 });
 }
 
 /**

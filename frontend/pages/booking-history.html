@@ -639,7 +639,7 @@
               </div>
               <div class="info-item">
                 <div class="info-label">💰 Price</div>
-                <div class="info-value">$${booking.totalPrice.toFixed(2)}</div>
+                <div class="info-value">${formatINR(booking.totalPrice)}</div>
               </div>
             </div>
             ${booking.notes ? `<div style="color: #666; font-size: 13px; margin-top: 10px;">📝 Notes: ${booking.notes}</div>` : ''}
