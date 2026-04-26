@@ -157,16 +157,23 @@ async function verifyPayment(orderId, paymentId, signature, userId) {
     const platformFee = +(totalPrice * 0.10).toFixed(2);    // 10% platform cut
     const tutorEarnings = +(totalPrice - platformFee).toFixed(2); // 90% to tutor
 
-    await Booking.findByIdAndUpdate(payment.bookingId, {
+    const updatedBooking = await Booking.findByIdAndUpdate(payment.bookingId, {
       paymentStatus: 'paid',
       paymentId,
       status: 'confirmed',
       platformFee,
       tutorEarnings,
       payoutStatus: 'pending',
-    });
+    }, { new: true });
 
-    console.log(`[PAYMENT] Earnings split: Total=${totalPrice}, Platform=${platformFee}, Tutor=${tutorEarnings}`);
+    console.log(`[PAYMENT] ✅ Payment captured & booking updated:`, {
+      bookingId: payment.bookingId,
+      tutorId: booking.tutorId,
+      totalPrice,
+      platformFee,
+      tutorEarnings,
+      payoutStatus: 'pending',
+    });
 
     // Send confirmation email (non-blocking)
     sendPaymentConfirmationEmail(payment).catch(() => {});

@@ -147,20 +147,24 @@ async function getMyBookings(userId, role) {
 async function getUpcomingBookings(studentId) {
   const now = new Date();
   
-  return Booking.find({
+  // Get all bookings that haven't been rejected/cancelled
+  const bookings = await Booking.find({
     studentId,
     status: { $in: ['accepted', 'confirmed'] },
-    $or: [
-      { sessionDate: { $gt: now } },
-      {
-        sessionDate: {
-          $gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
-          $lt: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1),
-        },
-        startTime: { $gt: now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }) },
-      },
-    ],
   }).sort({ sessionDate: 1, startTime: 1 });
+
+  // Filter out sessions where endTime has already passed
+  return bookings.filter(booking => {
+    if (!booking.sessionDate || !booking.endTime) return false;
+    
+    // Create a DateTime from sessionDate + endTime
+    const sessionEndDateTime = new Date(booking.sessionDate);
+    const [hours, minutes] = booking.endTime.split(':').map(Number);
+    sessionEndDateTime.setHours(hours, minutes, 0, 0);
+    
+    // Keep only if session hasn't ended yet
+    return sessionEndDateTime > now;
+  });
 }
 
 /**
@@ -363,36 +367,73 @@ async function rejectBooking(bookingId, tutorId, reason) {
 
 async function getDashboardStats(userId, role) {
   const filterKey = role === 'student' ? 'studentId' : 'tutorId';
+  const now = new Date();
 
-  const [paidSessions, upcoming, pending] = await Promise.all([
-    // Count both completed AND confirmed (paid) bookings for earnings
-    Booking.find({ [filterKey]: userId, status: { $in: ['completed', 'confirmed'] } }),
-    Booking.find({ [filterKey]: userId, status: { $in: ['accepted', 'confirmed'] }, sessionDate: { $gte: new Date() } }),
-    Booking.find({ [filterKey]: userId, status: 'pending' }),
-  ]);
+  // COMPLETED sessions only (not confirmed)
+  const completedBookings = await Booking.find({ 
+    [filterKey]: userId, 
+    status: 'completed'
+  });
 
+  // UPCOMING sessions: status in ['accepted', 'confirmed'] AND session hasn't ended yet
+  // Check: sessionDate + endTime > now
+  const futureBookings = await Booking.find({ 
+    [filterKey]: userId, 
+    status: { $in: ['accepted', 'confirmed'] }
+  }).lean();
+
+  const upcoming = futureBookings.filter(b => {
+    if (!b.sessionDate || !b.endTime) return false;
+    const sessionDateTime = new Date(b.sessionDate);
+    const [hours, minutes] = b.endTime.split(':').map(Number);
+    sessionDateTime.setHours(hours, minutes, 0, 0);
+    return sessionDateTime > now;
+  });
+
+  // PAID sessions (for calculating earnings): status in ['completed', 'confirmed']
+  const paidSessions = await Booking.find({ 
+    [filterKey]: userId, 
+    status: { $in: ['completed', 'confirmed'] },
+    paymentStatus: 'paid'
+  });
+
+  const pending = await Booking.find({ [filterKey]: userId, status: 'pending' });
   const all = await Booking.find({ [filterKey]: userId });
+
+  // Only count COMPLETED sessions for hours (not in-progress)
+  const totalHours = completedBookings.reduce((sum, b) => sum + ((b.durationMinutes || 0) / 60), 0);
+  
   const totalEarnings = paidSessions.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
-  const totalHours = paidSessions.reduce((sum, b) => sum + ((b.durationMinutes || 0) / 60), 0);
   const upcomingEarnings = upcoming.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
   const uniqueOthers = new Set(all.map(b =>
     role === 'student' ? b.tutorId.toString() : b.studentId.toString()
   )).size;
 
-  // Tutor earnings breakdown
+  // Tutor earnings breakdown (from PAID sessions only)
   const tutorNetEarnings = paidSessions.reduce((sum, b) => sum + (b.tutorEarnings || 0), 0);
   const platformFees = paidSessions.reduce((sum, b) => sum + (b.platformFee || 0), 0);
-  const pendingPayouts = paidSessions.filter(b => b.payoutStatus === 'pending')
+  const pendingPayouts = paidSessions
+    .filter(b => b.payoutStatus === 'pending' && b.status === 'confirmed')
     .reduce((sum, b) => sum + (b.tutorEarnings || 0), 0);
+
+  console.log(`[STATS] ${role} dashboard:`, {
+    userId,
+    completedCount: completedBookings.length,
+    upcomingCount: upcoming.length,
+    paidSessionsCount: paidSessions.length,
+    totalHours,
+    tutorNetEarnings,
+    pendingPayouts,
+  });
 
   return {
     totalSessions: all.length,
-    completedSessions: paidSessions.length,
+    completedSessions: completedBookings.length,
     upcomingSessions: upcoming.length,
     totalEarnings,        // gross (student: total spent, tutor: total billed)
     tutorNetEarnings,     // net after platform fee (tutor only)
     platformFees,         // total platform fees deducted
-    pendingPayouts,       // earnings awaiting payout
+    pendingPayouts,       // earnings awaiting payout (only from confirmed paid sessions)
     upcomingEarnings,
     totalHours: parseFloat(totalHours.toFixed(1)),
     uniqueOthers,
