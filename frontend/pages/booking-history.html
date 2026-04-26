@@ -552,11 +552,11 @@
         <div class="modal-form-group">
           <label>Rating</label>
           <div class="star-rating" id="starRating">
-            <span class="star" onclick="setRating(1)">⭐</span>
-            <span class="star" onclick="setRating(2)">⭐</span>
-            <span class="star" onclick="setRating(3)">⭐</span>
-            <span class="star" onclick="setRating(4)">⭐</span>
-            <span class="star" onclick="setRating(5)">⭐</span>
+            <span class="star" onclick="setRating(1)">☆</span>
+            <span class="star" onclick="setRating(2)">☆</span>
+            <span class="star" onclick="setRating(3)">☆</span>
+            <span class="star" onclick="setRating(4)">☆</span>
+            <span class="star" onclick="setRating(5)">☆</span>
           </div>
         </div>
       </div>
@@ -662,6 +662,7 @@
     function renderBookingList(containerId, bookings) {
       const container = document.getElementById(containerId);
       const role = getUserRole();
+      const now = new Date();
 
       if (bookings.length === 0) {
         container.innerHTML = `
@@ -677,6 +678,16 @@
       container.innerHTML = bookings.map(booking => {
         const displayName = role === 'tutor' ? booking.studentName : booking.tutorName;
         const avatarEmoji = role === 'tutor' ? '👨‍🎓' : '👨‍🏫';
+        const sessionEndTime = new Date(booking.sessionDate);
+        if (booking.endTime) {
+          const [hours, minutes] = booking.endTime.split(':').map(Number);
+          sessionEndTime.setHours(hours, minutes, 0, 0);
+        }
+        const hasSessionEnded = sessionEndTime <= now;
+        const isEffectivelyCompleted =
+          booking.status === 'completed' ||
+          (['accepted', 'confirmed'].includes(booking.status) && hasSessionEnded);
+        const displayStatus = isEffectivelyCompleted ? 'completed' : booking.status;
 
         // Build action buttons based on status + role
         let actions = '';
@@ -705,18 +716,18 @@
           `;
         }
 
-        // Chat button for active bookings
+        // Chat button for non-pending/non-cancelled bookings
         if (!['cancelled', 'rejected', 'pending'].includes(booking.status)) {
           actions += `<button class="action-btn" onclick="openChat('${booking._id}')" style="background:#5BD1D7;color:white;">💬 Chat</button>`;
         }
 
-        // Cancel for confirmed/accepted
-        if (['confirmed', 'accepted'].includes(booking.status)) {
+        // Cancel only for future accepted/confirmed sessions
+        if (['confirmed', 'accepted'].includes(booking.status) && !hasSessionEnded) {
           actions += `<button class="action-btn danger" onclick="openCancelModal('${booking._id}')">Cancel</button>`;
         }
 
-        // Feedback for completed (student only)
-        if (booking.status === 'completed' && !booking.rating && role === 'student') {
+        // Feedback for ended sessions (student only)
+        if (isEffectivelyCompleted && !booking.rating && role === 'student') {
           actions += `<button class="action-btn primary" onclick="openFeedbackModal('${booking._id}', '${booking.tutorName}')">Leave Feedback</button>`;
         }
 
@@ -739,7 +750,7 @@
                 <div class="booking-title">${displayName}</div>
                 <div class="booking-subject">${booking.subject}</div>
               </div>
-              <span class="status-badge status-${booking.status.toLowerCase()}">${getStatusText(booking.status)}</span>
+              <span class="status-badge status-${displayStatus.toLowerCase()}">${getStatusText(displayStatus)}</span>
             </div>
             <div class="booking-info">
               <div class="info-item">
@@ -857,7 +868,10 @@
       currentRating = 0;
       document.getElementById('feedbackTutorName').textContent = tutorName;
       document.getElementById('feedbackText').value = '';
-      document.querySelectorAll('#starRating .star').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('#starRating .star').forEach(s => {
+        s.classList.remove('active');
+        s.textContent = '☆';
+      });
       document.getElementById('feedbackMessage').classList.remove('success', 'error');
       document.getElementById('feedbackMessage').textContent = '';
       openModal('feedbackModal');
@@ -868,8 +882,10 @@
       document.querySelectorAll('#starRating .star').forEach((star, idx) => {
         if (idx < rating) {
           star.classList.add('active');
+          star.textContent = '★';
         } else {
           star.classList.remove('active');
+          star.textContent = '☆';
         }
       });
     }
