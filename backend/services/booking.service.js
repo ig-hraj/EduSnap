@@ -249,12 +249,27 @@ async function addFeedback(bookingId, studentId, rating, feedbackText) {
     throw new AppError('You are not authorized to leave feedback on this booking', 403);
   }
 
-  if (booking.status !== 'completed') {
-    throw new AppError('Only completed bookings can have feedback', 400);
-  }
-
   if (booking.rating) {
     throw new AppError('Feedback has already been submitted for this booking', 400);
+  }
+
+  // Allow feedback for sessions that have ended, even if scheduler
+  // has not yet flipped status from accepted/confirmed to completed.
+  if (booking.status !== 'completed') {
+    let hasEnded = false;
+
+    if (['accepted', 'confirmed'].includes(booking.status) && booking.sessionDate && booking.endTime) {
+      const sessionEndDateTime = new Date(booking.sessionDate);
+      const [hours, minutes] = booking.endTime.split(':').map(Number);
+      sessionEndDateTime.setHours(hours, minutes, 0, 0);
+      hasEnded = sessionEndDateTime <= new Date();
+    }
+
+    if (hasEnded) {
+      booking.status = 'completed';
+    } else {
+      throw new AppError('Only completed bookings can have feedback', 400);
+    }
   }
 
   // Save feedback
