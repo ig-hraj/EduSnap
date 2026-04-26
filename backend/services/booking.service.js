@@ -364,28 +364,38 @@ async function rejectBooking(bookingId, tutorId, reason) {
 async function getDashboardStats(userId, role) {
   const filterKey = role === 'student' ? 'studentId' : 'tutorId';
 
-  const [completed, upcoming, pending] = await Promise.all([
-    Booking.find({ [filterKey]: userId, status: 'completed' }),
+  const [paidSessions, upcoming, pending] = await Promise.all([
+    // Count both completed AND confirmed (paid) bookings for earnings
+    Booking.find({ [filterKey]: userId, status: { $in: ['completed', 'confirmed'] } }),
     Booking.find({ [filterKey]: userId, status: { $in: ['accepted', 'confirmed'] }, sessionDate: { $gte: new Date() } }),
     Booking.find({ [filterKey]: userId, status: 'pending' }),
   ]);
 
   const all = await Booking.find({ [filterKey]: userId });
-  const totalEarnings = completed.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
-  const totalHours = completed.reduce((sum, b) => sum + ((b.durationMinutes || 0) / 60), 0);
+  const totalEarnings = paidSessions.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+  const totalHours = paidSessions.reduce((sum, b) => sum + ((b.durationMinutes || 0) / 60), 0);
   const upcomingEarnings = upcoming.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
   const uniqueOthers = new Set(all.map(b =>
     role === 'student' ? b.tutorId.toString() : b.studentId.toString()
   )).size;
 
+  // Tutor earnings breakdown
+  const tutorNetEarnings = paidSessions.reduce((sum, b) => sum + (b.tutorEarnings || 0), 0);
+  const platformFees = paidSessions.reduce((sum, b) => sum + (b.platformFee || 0), 0);
+  const pendingPayouts = paidSessions.filter(b => b.payoutStatus === 'pending')
+    .reduce((sum, b) => sum + (b.tutorEarnings || 0), 0);
+
   return {
     totalSessions: all.length,
-    completedSessions: completed.length,
+    completedSessions: paidSessions.length,
     upcomingSessions: upcoming.length,
-    totalEarnings,
+    totalEarnings,        // gross (student: total spent, tutor: total billed)
+    tutorNetEarnings,     // net after platform fee (tutor only)
+    platformFees,         // total platform fees deducted
+    pendingPayouts,       // earnings awaiting payout
     upcomingEarnings,
     totalHours: parseFloat(totalHours.toFixed(1)),
-    uniqueOthers, // students for tutor, tutors for student
+    uniqueOthers,
     pendingRequests: pending.length,
   };
 }

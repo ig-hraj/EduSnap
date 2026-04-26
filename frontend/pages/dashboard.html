@@ -349,7 +349,7 @@
         </div>
         <div class="stat-card">
           <div class="stat-label">Total Spent</div>
-          <div class="stat-value" id="totalSpent">$0</div>
+          <div class="stat-value" id="totalSpent">₹0</div>
           <div class="stat-detail"><span id="uniqueTutors">0</span> tutors</div>
         </div>
       </div>
@@ -430,9 +430,10 @@
           <div class="stat-detail">Based on reviews</div>
         </div>
         <div class="stat-card" style="border-left-color:#27ae60">
-          <div class="stat-label">💰 Total Earnings</div>
-          <div class="stat-value" id="tutorEarnings" style="color:#27ae60">$0</div>
-          <div class="stat-detail">Upcoming: <span id="tutorUpcomingEarnings">$0</span></div>
+          <div class="stat-label">💰 Net Earnings</div>
+          <div class="stat-value" id="tutorEarnings" style="color:#27ae60">₹0</div>
+          <div class="stat-detail">After 10% platform fee</div>
+          <div class="stat-detail" style="margin-top:4px;">Pending payout: <span id="tutorPendingPayout" style="color:#f39c12;font-weight:600;">₹0</span></div>
         </div>
       </div>
 
@@ -679,10 +680,10 @@
           document.getElementById('upcomingBookings').innerHTML = bookingsHtml;
         }
 
-        // Fetch all bookings for pending payments
+        // Fetch all bookings for pending payments (accepted + not yet paid)
         const allBookingsRes = await getMyBookings();
         const allBookings = allBookingsRes.bookings || [];
-        const pendingPayments = allBookings.filter(b => b.status === 'accepted');
+        const pendingPayments = allBookings.filter(b => b.status === 'accepted' && b.paymentStatus !== 'paid');
 
         if (pendingPayments.length > 0) {
           document.getElementById('pendingPaymentsSection').style.display = 'block';
@@ -746,7 +747,7 @@
         // Populate profile card
         document.getElementById('profileName').textContent = `${userData.firstName} ${userData.lastName}`;
         document.getElementById('profileEmail').textContent = userData.email;
-        document.getElementById('profileRate').textContent = `$${tutor.hourlyRate}/hr`;
+        document.getElementById('profileRate').textContent = `₹${tutor.hourlyRate}/hr`;
         document.getElementById('profileSubjects').textContent = tutor.subjects.join(', ') || 'No subjects added';
         document.getElementById('profileBio').textContent = tutor.bio || 'No bio added yet';
 
@@ -754,8 +755,8 @@
         document.getElementById('tutorUpcoming').textContent = stats.upcomingSessions || 0;
         document.getElementById('tutorStudents').textContent = stats.uniqueOthers || 0;
         document.getElementById('tutorRating').textContent = tutor.ratings ? tutor.ratings.toFixed(1) : '-';
-        document.getElementById('tutorEarnings').textContent = `$${(stats.totalEarnings || 0).toFixed(0)}`;
-        document.getElementById('tutorUpcomingEarnings').textContent = `$${(stats.upcomingEarnings || 0).toFixed(0)}`;
+        document.getElementById('tutorEarnings').textContent = formatINR(stats.tutorNetEarnings || 0);
+        document.getElementById('tutorPendingPayout').textContent = formatINR(stats.pendingPayouts || 0);
 
         // Display availability
         const formattedAvailability = formatAvailability(tutor.availability || {});
@@ -768,10 +769,10 @@
           `)
           .join('');
 
-        // Render upcoming sessions (accepted + confirmed, future only)
+        // Render upcoming sessions (ONLY confirmed/paid, future only)
         const now = new Date();
         const upcomingBookings = bookings.filter(b => {
-          if (!['accepted', 'confirmed'].includes(b.status)) return false;
+          if (b.status !== 'confirmed') return false;
           const sessionDateTime = new Date(b.sessionDate);
           if (b.endTime) {
             const [h, m] = b.endTime.split(':').map(Number);
@@ -788,6 +789,7 @@
                 <p class="booking-time">🕐 ${formatTime(booking.startTime)} - ${formatTime(booking.endTime)}</p>
               </div>
               <div style="font-size: 13px; text-align: center;">
+                <p style="color: #27ae60; font-weight: 600; margin-bottom: 4px;">✅ Paid</p>
                 <p style="color: #5BD1D7; font-weight: 600; margin-bottom: 8px;">${formatINR(booking.totalPrice)}</p>
                 <p style="color: #999;">Duration: ${calculateDuration(booking.startTime, booking.endTime).toFixed(1)} hrs</p>
               </div>
@@ -801,11 +803,40 @@
           document.getElementById('tutorUpcomingSessions').innerHTML = bookingsHtml;
         }
 
-        // Render pending booking requests
+        // Render accepted bookings (waiting for student payment)
+        const acceptedBookings = bookings.filter(b => b.status === 'accepted');
+
+        // Render pending booking requests (awaiting tutor approval)
         const pendingBookings = bookings.filter(b => b.status === 'pending');
-        if (pendingBookings.length > 0) {
+
+        // Combine both into the pending section
+        const allPending = [...pendingBookings, ...acceptedBookings];
+        if (allPending.length > 0) {
           document.getElementById('pendingRequestsSection').style.display = 'block';
-          document.getElementById('pendingRequests').innerHTML = pendingBookings.map(b => `
+          document.getElementById('pendingRequests').innerHTML = allPending.map(b => {
+            const isPending = b.status === 'pending';
+            const isAccepted = b.status === 'accepted';
+
+            let actionButtons = '';
+            let statusLabel = '';
+
+            if (isPending) {
+              statusLabel = '<p style="color:#f39c12;font-weight:600;font-size:12px;margin-top:4px;">⏳ New Request</p>';
+              actionButtons = `
+                <button class="btn-small btn-primary-small" style="padding:10px 16px;" onclick="handleBookingAction('${b._id}', 'accept')">✅ Accept</button>
+                <button class="btn-small btn-secondary-small" style="padding:10px 16px;color:#e74c3c;border-color:#e74c3c;" onclick="handleBookingAction('${b._id}', 'reject')">✗ Reject</button>
+              `;
+            } else if (isAccepted) {
+              statusLabel = '<p style="color:#3498db;font-weight:600;font-size:12px;margin-top:4px;">✅ Accepted — Waiting for Payment</p>';
+              actionButtons = `
+                <div style="text-align:center;padding:8px;">
+                  <span style="color:#3498db;font-size:20px;">💳</span>
+                  <p style="color:#666;font-size:11px;margin-top:4px;">Student will pay</p>
+                </div>
+              `;
+            }
+
+            return `
             <div class="booking-card">
               <div class="booking-info">
                 <h4>👨‍🎓 ${b.studentName}</h4>
@@ -814,13 +845,13 @@
                 <p class="booking-time">🕐 ${formatTime(b.startTime)} - ${formatTime(b.endTime)}</p>
                 <p style="color:#666;font-size:12px;margin-top:4px;">${formatINR(b.totalPrice)} • ${calculateDuration(b.startTime, b.endTime).toFixed(1)} hrs</p>
                 ${b.notes ? `<p style="color:#999;font-size:12px;margin-top:4px;">📝 ${b.notes}</p>` : ''}
+                ${statusLabel}
               </div>
               <div class="booking-action" style="display:flex;flex-direction:column;gap:6px;">
-                <button class="btn-small btn-primary-small" style="padding:10px 16px;" onclick="handleBookingAction('${b._id}', 'accept')">✅ Accept</button>
-                <button class="btn-small btn-secondary-small" style="padding:10px 16px;color:#e74c3c;border-color:#e74c3c;" onclick="handleBookingAction('${b._id}', 'reject')">✗ Reject</button>
+                ${actionButtons}
               </div>
             </div>
-          `).join('');
+          `}).join('');
         }
 
         // Render recent reviews

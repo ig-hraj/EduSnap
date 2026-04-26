@@ -369,7 +369,7 @@
                 // Initialize Razorpay options
                 const options = {
                     key: orderData.keyId,
-                    amount: orderData.amount * 100, // Convert to paise
+                    amount: orderData.amount, // Already in paise from backend — do NOT multiply again
                     currency: orderData.currency || 'INR',
                     order_id: orderData.orderId,
                     name: 'EduSnap',
@@ -388,6 +388,12 @@
                     },
                     theme: {
                         color: '#5BD1D7',
+                    },
+                    method: {
+                        netbanking: true,
+                        card: true,
+                        upi: true,
+                        wallet: true,
                     },
                     modal: {
                         ondismiss: function () {

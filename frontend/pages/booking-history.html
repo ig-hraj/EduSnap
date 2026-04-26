@@ -695,8 +695,8 @@
           actions += `<button class="action-btn danger" onclick="openCancelModal('${booking._id}')">Cancel Request</button>`;
         }
 
-        // Student: Pay Now for accepted bookings
-        if (booking.status === 'accepted' && role === 'student') {
+        // Student: Pay Now for accepted bookings (only if not already paid)
+        if (booking.status === 'accepted' && booking.paymentStatus !== 'paid' && role === 'student') {
           actions += `
             <div style="font-size:12px;color:#27ae60;font-weight:600;padding:4px 8px;">✅ Session Approved</div>
             <a href="payment.html?bookingId=${booking._id}" style="text-decoration:none">

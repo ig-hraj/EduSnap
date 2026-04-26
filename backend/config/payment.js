@@ -34,11 +34,10 @@ async function createPaymentOrder(bookingId, amount, description, customerId) {
       amount: Math.round(amount * 100), // Convert to paise (1 rupee = 100 paise)
       currency: 'INR',
       receipt: `booking_${bookingId}`,
-      description: description,
-      customer_notify: 1,
       notes: {
         bookingId: bookingId.toString(),
         customerId: customerId.toString(),
+        description: description,
       },
     });
 

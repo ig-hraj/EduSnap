@@ -150,12 +150,23 @@ async function verifyPayment(orderId, paymentId, signature, userId) {
     throw new AppError('You cannot verify someone else\'s payment', 403);
   }
 
-  // Step 5: Update booking payment status
+  // Step 5: Update booking payment status + calculate earnings
   if (payment.status === 'captured') {
+    const booking = await Booking.findById(payment.bookingId);
+    const totalPrice = booking.totalPrice || payment.amount;
+    const platformFee = +(totalPrice * 0.10).toFixed(2);    // 10% platform cut
+    const tutorEarnings = +(totalPrice - platformFee).toFixed(2); // 90% to tutor
+
     await Booking.findByIdAndUpdate(payment.bookingId, {
       paymentStatus: 'paid',
       paymentId,
+      status: 'confirmed',
+      platformFee,
+      tutorEarnings,
+      payoutStatus: 'pending',
     });
+
+    console.log(`[PAYMENT] Earnings split: Total=${totalPrice}, Platform=${platformFee}, Tutor=${tutorEarnings}`);
 
     // Send confirmation email (non-blocking)
     sendPaymentConfirmationEmail(payment).catch(() => {});

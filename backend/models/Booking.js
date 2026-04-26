@@ -54,6 +54,14 @@ const bookingSchema = new mongoose.Schema({
     default: 'unpaid',
   },
   paymentId: String, // Razorpay payment ID
+  // Earnings breakdown (calculated after payment capture)
+  platformFee: { type: Number, default: 0 },       // 10% platform cut
+  tutorEarnings: { type: Number, default: 0 },      // 90% tutor payout
+  payoutStatus: {
+    type: String,
+    enum: ['pending', 'processed', 'failed'],
+    default: 'pending',
+  },
   notes: String, // Student notes/requirements
   cancelReason: String, // If cancelled
   rejectionReason: String, // If rejected by tutor
