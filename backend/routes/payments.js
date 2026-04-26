@@ -5,14 +5,14 @@
  * AFTER:  25 lines. Security enforced in service layer.
  */
 const express = require('express');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, requireVerified } = require('../middleware/auth');
 const catchAsync = require('../utils/catchAsync');
 const paymentController = require('../controllers/payment.controller');
 
 const router = express.Router();
 
-// Create Razorpay order
-router.post('/order', verifyToken, catchAsync(paymentController.createOrder));
+// Create Razorpay order (verified users only)
+router.post('/order', verifyToken, requireVerified, catchAsync(paymentController.createOrder));
 
 // Verify payment signature (CRITICAL security step)
 router.post('/verify', verifyToken, catchAsync(paymentController.verifyPayment));

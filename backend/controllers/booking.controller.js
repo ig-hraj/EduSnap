@@ -16,9 +16,10 @@ exports.create = async (req, res) => {
   const booking = await bookingService.createBooking(req.user.id, req.body);
 
   res.status(201).json({
-    message: 'Booking created successfully',
+    message: 'Booking request sent! Waiting for tutor approval.',
     booking: {
       id: booking._id,
+      _id: booking._id,
       tutorId: booking.tutorId,
       tutorName: booking.tutorName,
       studentName: booking.studentName,
@@ -86,6 +87,18 @@ exports.addFeedback = async (req, res) => {
     message: 'Feedback added successfully',
     booking,
   });
+};
+
+// PATCH /api/bookings/:id/accept (tutors only)
+exports.accept = async (req, res) => {
+  const booking = await bookingService.acceptBooking(req.params.id, req.user.id);
+  res.status(200).json({ message: 'Booking accepted! Student can now proceed to payment.', booking });
+};
+
+// PATCH /api/bookings/:id/reject (tutors only)
+exports.reject = async (req, res) => {
+  const booking = await bookingService.rejectBooking(req.params.id, req.user.id, req.body.reason);
+  res.status(200).json({ message: 'Booking request declined.', booking });
 };
 
 // GET /api/bookings/dashboard-stats

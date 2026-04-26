@@ -85,6 +85,33 @@ app.use(express.static(path.join(__dirname, '..', 'frontend')));
 // Connect to MongoDB
 connectDB();
 
+// ========== ONE-TIME MIGRATION: Auto-verify existing users ==========
+const mongoose = require('mongoose');
+mongoose.connection.once('open', async () => {
+  try {
+    const Student = require('./models/Student');
+    const Tutor = require('./models/Tutor');
+
+    const [studentResult, tutorResult] = await Promise.all([
+      Student.updateMany(
+        { isVerified: { $exists: false } },
+        { $set: { isVerified: true } }
+      ),
+      Tutor.updateMany(
+        { isVerified: { $exists: false } },
+        { $set: { isVerified: true } }
+      ),
+    ]);
+
+    const total = (studentResult.modifiedCount || 0) + (tutorResult.modifiedCount || 0);
+    if (total > 0) {
+      console.log(`✓ Migration: Auto-verified ${total} existing user(s)`);
+    }
+  } catch (err) {
+    console.log('⚠️  Migration skipped:', err.message);
+  }
+});
+
 // ========== ROUTES ==========
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/tutors', tutorRoutes);

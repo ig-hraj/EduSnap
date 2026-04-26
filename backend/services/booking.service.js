@@ -103,7 +103,7 @@ async function createBooking(studentId, data) {
     throw new AppError('Tutor is not available at this time. Please choose a different slot.', 400);
   }
 
-  // 5. Create and save booking
+  // 5. Create and save booking with PENDING status (tutor must accept)
   const booking = await Booking.create({
     studentId,
     tutorId,
@@ -117,17 +117,18 @@ async function createBooking(studentId, data) {
     hourlyRate: tutor.hourlyRate,
     totalPrice,
     notes: notes || '',
-    status: 'confirmed',
+    status: 'pending',
   });
 
-  // 5. Send confirmation email (non-blocking)
-  const emailContent = bookingConfirmationEmail(
-    booking.studentName, booking.tutorName, booking.subject,
-    booking.sessionDate, booking.startTime, booking.endTime, booking.totalPrice
-  );
-  sendEmail(student.email, '🎓 Booking Confirmed - EduSnap', emailContent).catch(err =>
-    console.log('Email send error (non-blocking):', err.message)
-  );
+  // Notify student that request was sent (non-blocking)
+  sendEmail(
+    student.email,
+    '📚 Booking Request Sent - EduSnap',
+    bookingConfirmationEmail(
+      booking.studentName, booking.tutorName, booking.subject,
+      booking.sessionDate, booking.startTime, booking.endTime, booking.totalPrice
+    )
+  ).catch(err => console.log('Email send error (non-blocking):', err.message));
 
   return booking;
 }
@@ -141,18 +142,16 @@ async function getMyBookings(userId, role) {
 }
 
 /**
- * Get upcoming confirmed bookings for a student.
+ * Get upcoming bookings for a student (accepted/confirmed — i.e. approved sessions).
  */
 async function getUpcomingBookings(studentId) {
   const now = new Date();
   
   return Booking.find({
     studentId,
-    status: 'confirmed',
+    status: { $in: ['accepted', 'confirmed'] },
     $or: [
-      // Future sessions: sessionDate is in the future
       { sessionDate: { $gt: now } },
-      // Today's sessions: sessionDate is today AND start time hasn't passed
       {
         sessionDate: {
           $gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
@@ -191,8 +190,8 @@ async function cancelBooking(bookingId, userId, reason) {
     throw new AppError('You are not authorized to cancel this booking', 403);
   }
 
-  if (booking.status !== 'confirmed') {
-    throw new AppError('Only confirmed bookings can be cancelled', 400);
+  if (!['pending', 'accepted', 'confirmed'].includes(booking.status)) {
+    throw new AppError('This booking cannot be cancelled', 400);
   }
 
   // Update booking
@@ -293,12 +292,82 @@ async function addFeedback(bookingId, studentId, rating, feedbackText) {
 /**
  * Get dashboard stats for a user (earnings, hours, etc.).
  */
+/**
+ * Tutor accepts a pending booking request.
+ */
+async function acceptBooking(bookingId, tutorId) {
+  const booking = await Booking.findById(bookingId);
+  if (!booking) throw new AppError('Booking not found', 404);
+
+  if (booking.tutorId.toString() !== tutorId) {
+    throw new AppError('You are not authorized to accept this booking', 403);
+  }
+
+  if (booking.status !== 'pending') {
+    throw new AppError('Only pending bookings can be accepted', 400);
+  }
+
+  booking.status = 'accepted';
+  booking.updatedAt = Date.now();
+  await booking.save();
+
+  // Notify student (non-blocking)
+  const student = await Student.findById(booking.studentId);
+  if (student?.email) {
+    sendEmail(
+      student.email,
+      '✅ Session Approved - EduSnap',
+      bookingConfirmationEmail(
+        booking.studentName, booking.tutorName, booking.subject,
+        booking.sessionDate, booking.startTime, booking.endTime, booking.totalPrice
+      )
+    ).catch(() => {});
+  }
+
+  return booking;
+}
+
+/**
+ * Tutor rejects a pending booking request.
+ */
+async function rejectBooking(bookingId, tutorId, reason) {
+  const booking = await Booking.findById(bookingId);
+  if (!booking) throw new AppError('Booking not found', 404);
+
+  if (booking.tutorId.toString() !== tutorId) {
+    throw new AppError('You are not authorized to reject this booking', 403);
+  }
+
+  if (booking.status !== 'pending') {
+    throw new AppError('Only pending bookings can be rejected', 400);
+  }
+
+  booking.status = 'rejected';
+  booking.rejectionReason = reason || 'Declined by tutor';
+  booking.updatedAt = Date.now();
+  await booking.save();
+
+  // Notify student (non-blocking)
+  const student = await Student.findById(booking.studentId);
+  if (student?.email) {
+    const { cancellationEmail: cancelTemplate } = require('../config/email');
+    sendEmail(
+      student.email,
+      '❌ Session Request Declined - EduSnap',
+      cancelTemplate(booking.studentName, booking.tutorName, booking.subject, booking.sessionDate, booking.rejectionReason)
+    ).catch(() => {});
+  }
+
+  return booking;
+}
+
 async function getDashboardStats(userId, role) {
   const filterKey = role === 'student' ? 'studentId' : 'tutorId';
 
-  const [completed, upcoming] = await Promise.all([
+  const [completed, upcoming, pending] = await Promise.all([
     Booking.find({ [filterKey]: userId, status: 'completed' }),
-    Booking.find({ [filterKey]: userId, status: 'confirmed', sessionDate: { $gte: new Date() } }),
+    Booking.find({ [filterKey]: userId, status: { $in: ['accepted', 'confirmed'] }, sessionDate: { $gte: new Date() } }),
+    Booking.find({ [filterKey]: userId, status: 'pending' }),
   ]);
 
   const all = await Booking.find({ [filterKey]: userId });
@@ -317,6 +386,7 @@ async function getDashboardStats(userId, role) {
     upcomingEarnings,
     totalHours: parseFloat(totalHours.toFixed(1)),
     uniqueOthers, // students for tutor, tutors for student
+    pendingRequests: pending.length,
   };
 }
 
@@ -366,6 +436,8 @@ module.exports = {
   getUpcomingBookings,
   getBookingById,
   cancelBooking,
+  acceptBooking,
+  rejectBooking,
   addFeedback,
   getDashboardStats,
   getReviewsForTutor,

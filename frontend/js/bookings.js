@@ -199,12 +199,18 @@ const calculatePrice = (hourlyRate, duration) => {
 // Get status badge color
 const getStatusColor = (status) => {
   switch (status) {
+    case 'pending':
+      return '#f39c12';
+    case 'accepted':
+      return '#3498db';
     case 'confirmed':
       return '#5BD1D7';
     case 'completed':
       return '#27ae60';
     case 'cancelled':
       return '#e74c3c';
+    case 'rejected':
+      return '#95a5a6';
     default:
       return '#999';
   }
@@ -213,12 +219,18 @@ const getStatusColor = (status) => {
 // Get status badge text
 const getStatusText = (status) => {
   switch (status) {
+    case 'pending':
+      return 'Pending Approval';
+    case 'accepted':
+      return 'Approved — Pay Now';
     case 'confirmed':
       return 'Confirmed';
     case 'completed':
       return 'Completed';
     case 'cancelled':
       return 'Cancelled';
+    case 'rejected':
+      return 'Declined';
     default:
       return status;
   }

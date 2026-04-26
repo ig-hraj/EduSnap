@@ -321,6 +321,18 @@
       <div class="page-subtitle" id="pageSubtitle">Manage your account and bookings</div>
     </div>
 
+    <!-- [DISABLED FOR DEMO] Email Verification Banner
+    <div id="verifyBanner" style="display:none;background:linear-gradient(135deg,#fff3cd,#ffeaa7);border:1px solid #f0c36d;border-radius:10px;padding:18px 25px;margin-bottom:25px;display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div>
+          <strong style="font-size:15px;">⚠️ Email not verified</strong>
+          <p style="color:#856404;font-size:13px;margin-top:4px;">Verify your email to unlock booking, chat, and payment features.</p>
+        </div>
+        <button onclick="resendVerification()" style="padding:10px 20px;background:#5BD1D7;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;white-space:nowrap;">📧 Resend Verification</button>
+      </div>
+    </div>
+    -->
+
     <!-- STUDENT VIEW -->
     <div id="studentView" style="display: none;">
       <!-- Stats -->
@@ -353,6 +365,21 @@
             <div class="empty-state-icon">📭</div>
             <h3>No upcoming sessions</h3>
             <p>Ready to start learning? <a href="tutor-list.html" style="color: #5BD1D7; text-decoration: none;">Browse tutors</a> to book your first session!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Payments (student) -->
+      <div class="section" id="pendingPaymentsSection" style="display:none;">
+        <div class="section-header">
+          <div class="section-title">💳 Pending Payments</div>
+          <a href="booking-history.html" class="section-link">View All</a>
+        </div>
+        <div class="section-body" id="pendingPayments">
+          <div class="empty-state">
+            <div class="empty-state-icon">✅</div>
+            <h3>All payments up to date</h3>
+            <p>Payments for approved sessions will appear here.</p>
           </div>
         </div>
       </div>
@@ -406,6 +433,21 @@
           <div class="stat-label">💰 Total Earnings</div>
           <div class="stat-value" id="tutorEarnings" style="color:#27ae60">$0</div>
           <div class="stat-detail">Upcoming: <span id="tutorUpcomingEarnings">$0</span></div>
+        </div>
+      </div>
+
+      <!-- Pending Booking Requests (tutor) -->
+      <div class="section" id="pendingRequestsSection" style="display:none;">
+        <div class="section-header">
+          <div class="section-title">⏳ Pending Booking Requests</div>
+          <a href="booking-history.html" class="section-link">View All</a>
+        </div>
+        <div class="section-body" id="pendingRequests">
+          <div class="empty-state">
+            <div class="empty-state-icon">✅</div>
+            <h3>No pending requests</h3>
+            <p>New booking requests from students will appear here.</p>
+          </div>
         </div>
       </div>
 
@@ -528,6 +570,7 @@
       requireAuth();
       userRole = getUserRole();
       renderDashboard();
+      // [DISABLED FOR DEMO] checkVerificationStatus();
       
       // Initialize Socket.IO
       setTimeout(() => {
@@ -535,6 +578,39 @@
         setupSocketListeners();
       }, 500);
     });
+
+    // Check if user is verified — show banner if not
+    async function checkVerificationStatus() {
+      try {
+        const res = await fetch(`${API_URL}/auth/me`, {
+          headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+        });
+        const data = await res.json();
+        if (data.user && data.user.isVerified === false) {
+          document.getElementById('verifyBanner').style.display = 'block';
+        }
+      } catch (e) {
+        // Silently fail — don't block dashboard
+      }
+    }
+
+    // Resend verification email
+    async function resendVerification() {
+      try {
+        const res = await fetch(`${API_URL}/auth/resend-verification`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('✅ Verification email sent! Check your inbox.');
+        } else {
+          alert(data.message || 'Failed to send verification email.');
+        }
+      } catch (e) {
+        alert('Network error. Please try again.');
+      }
+    }
 
     // Render dashboard based on user role
     function renderDashboard() {
@@ -586,7 +662,7 @@
                 <p class="booking-time">🕐 ${formatTime(booking.startTime)} - ${formatTime(booking.endTime)}</p>
               </div>
               <div style="font-size: 13px; text-align: center;">
-                <p style="color: #5BD1D7; font-weight: 600; margin-bottom: 8px;">$${booking.totalPrice.toFixed(2)}</p>
+                <p style="color: #5BD1D7; font-weight: 600; margin-bottom: 8px;">${formatINR(booking.totalPrice)}</p>
                 <p style="color: #999;">Duration: ${calculateDuration(booking.startTime, booking.endTime).toFixed(1)} hrs</p>
               </div>
               <div class="booking-action">
@@ -601,6 +677,31 @@
           `).join('');
           
           document.getElementById('upcomingBookings').innerHTML = bookingsHtml;
+        }
+
+        // Fetch all bookings for pending payments
+        const allBookingsRes = await getMyBookings();
+        const allBookings = allBookingsRes.bookings || [];
+        const pendingPayments = allBookings.filter(b => b.status === 'accepted');
+
+        if (pendingPayments.length > 0) {
+          document.getElementById('pendingPaymentsSection').style.display = 'block';
+          document.getElementById('pendingPayments').innerHTML = pendingPayments.map(b => `
+            <div class="booking-card">
+              <div class="booking-info">
+                <h4>${b.tutorName} - ${b.subject}</h4>
+                <p>📅 ${formatDate(b.sessionDate)}</p>
+                <p class="booking-time">🕐 ${formatTime(b.startTime)} - ${formatTime(b.endTime)}</p>
+                <p style="color: #27ae60; font-weight: 600; font-size: 12px; margin-top: 5px;">✅ Approved by tutor</p>
+              </div>
+              <div style="text-align:center;">
+                <p style="color: #333; font-weight: 700; font-size: 18px; margin-bottom: 10px;">${formatINR(b.totalPrice)}</p>
+                <a href="payment.html?bookingId=${b._id}" style="text-decoration: none;">
+                  <button class="btn-small btn-primary-small" style="padding:10px 20px;font-size:14px;">💳 Pay Now</button>
+                </a>
+              </div>
+            </div>
+          `).join('');
         }
       } catch (error) {
         console.error('Error loading bookings:', error);
@@ -667,8 +768,17 @@
           `)
           .join('');
 
-        // Render upcoming sessions
-        const upcomingBookings = bookings.filter(b => b.status === 'confirmed');
+        // Render upcoming sessions (accepted + confirmed, future only)
+        const now = new Date();
+        const upcomingBookings = bookings.filter(b => {
+          if (!['accepted', 'confirmed'].includes(b.status)) return false;
+          const sessionDateTime = new Date(b.sessionDate);
+          if (b.endTime) {
+            const [h, m] = b.endTime.split(':').map(Number);
+            sessionDateTime.setHours(h, m, 0, 0);
+          }
+          return sessionDateTime > now;
+        });
         if (upcomingBookings.length > 0) {
           const bookingsHtml = upcomingBookings.slice(0, 3).map(booking => `
             <div class="booking-card">
@@ -678,7 +788,7 @@
                 <p class="booking-time">🕐 ${formatTime(booking.startTime)} - ${formatTime(booking.endTime)}</p>
               </div>
               <div style="font-size: 13px; text-align: center;">
-                <p style="color: #5BD1D7; font-weight: 600; margin-bottom: 8px;">$${booking.totalPrice.toFixed(2)}</p>
+                <p style="color: #5BD1D7; font-weight: 600; margin-bottom: 8px;">${formatINR(booking.totalPrice)}</p>
                 <p style="color: #999;">Duration: ${calculateDuration(booking.startTime, booking.endTime).toFixed(1)} hrs</p>
               </div>
               <div class="booking-action">
@@ -689,6 +799,28 @@
             </div>
           `).join('');
           document.getElementById('tutorUpcomingSessions').innerHTML = bookingsHtml;
+        }
+
+        // Render pending booking requests
+        const pendingBookings = bookings.filter(b => b.status === 'pending');
+        if (pendingBookings.length > 0) {
+          document.getElementById('pendingRequestsSection').style.display = 'block';
+          document.getElementById('pendingRequests').innerHTML = pendingBookings.map(b => `
+            <div class="booking-card">
+              <div class="booking-info">
+                <h4>👨‍🎓 ${b.studentName}</h4>
+                <p style="color: #5BD1D7; font-weight: 600;">${b.subject}</p>
+                <p>📅 ${formatDate(b.sessionDate)}</p>
+                <p class="booking-time">🕐 ${formatTime(b.startTime)} - ${formatTime(b.endTime)}</p>
+                <p style="color:#666;font-size:12px;margin-top:4px;">${formatINR(b.totalPrice)} • ${calculateDuration(b.startTime, b.endTime).toFixed(1)} hrs</p>
+                ${b.notes ? `<p style="color:#999;font-size:12px;margin-top:4px;">📝 ${b.notes}</p>` : ''}
+              </div>
+              <div class="booking-action" style="display:flex;flex-direction:column;gap:6px;">
+                <button class="btn-small btn-primary-small" style="padding:10px 16px;" onclick="handleBookingAction('${b._id}', 'accept')">✅ Accept</button>
+                <button class="btn-small btn-secondary-small" style="padding:10px 16px;color:#e74c3c;border-color:#e74c3c;" onclick="handleBookingAction('${b._id}', 'reject')">✗ Reject</button>
+              </div>
+            </div>
+          `).join('');
         }
 
         // Render recent reviews
@@ -717,6 +849,38 @@
     // Edit profile
     function editProfile() {
       window.location.href = 'edit-profile.html';
+    }
+
+    // Handle accept/reject booking actions from tutor dashboard
+    async function handleBookingAction(bookingId, action) {
+      const token = getAuthToken();
+      if (action === 'reject') {
+        const reason = prompt('Reason for declining (optional):');
+        if (reason === null) return;
+        try {
+          const res = await fetch(`${API_URL}/bookings/${bookingId}/reject`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message);
+          alert(data.message);
+          renderTutorDashboard();
+        } catch (err) { alert('❌ ' + err.message); }
+      } else {
+        if (!confirm('Accept this session request?')) return;
+        try {
+          const res = await fetch(`${API_URL}/bookings/${bookingId}/accept`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message);
+          alert('✅ ' + data.message);
+          renderTutorDashboard();
+        } catch (err) { alert('❌ ' + err.message); }
+      }
     }
 
     // Edit availability

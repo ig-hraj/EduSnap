@@ -44,8 +44,8 @@ const bookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['confirmed', 'completed', 'cancelled'],
-    default: 'confirmed',
+    enum: ['pending', 'accepted', 'confirmed', 'completed', 'cancelled', 'rejected'],
+    default: 'pending',
   },
   // Payment tracking (updated by payment verification route)
   paymentStatus: {
@@ -56,6 +56,7 @@ const bookingSchema = new mongoose.Schema({
   paymentId: String, // Razorpay payment ID
   notes: String, // Student notes/requirements
   cancelReason: String, // If cancelled
+  rejectionReason: String, // If rejected by tutor
   rating: Number, // Tutor rating by student (0-5)
   feedback: String, // Feedback by student
   createdAt: {

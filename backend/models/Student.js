@@ -26,6 +26,12 @@ const studentSchema = new mongoose.Schema({
   },
   phone: String,
   subjects: [String], // Subjects they need help in
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: String,
+  verificationTokenExpiry: Date,
   createdAt: {
     type: Date,
     default: Date.now,

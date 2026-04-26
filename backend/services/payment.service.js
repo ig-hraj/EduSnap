@@ -41,6 +41,16 @@ async function verifyPaymentAccess(bookingId, userId) {
 async function createOrder(bookingId, userId) {
   const booking = await verifyPaymentAccess(bookingId, userId);
 
+  // Only allow payment for tutor-accepted bookings
+  if (booking.status !== 'accepted') {
+    throw new AppError(
+      booking.status === 'pending'
+        ? 'Session not approved yet. Please wait for tutor to accept.'
+        : `Cannot pay for a ${booking.status} booking.`,
+      400
+    );
+  }
+
   // Idempotency check — prevent duplicate payment orders
   const existingPayment = await Payment.findOne({
     bookingId,

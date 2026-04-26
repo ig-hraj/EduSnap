@@ -50,6 +50,12 @@ const tutorSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: String,
+  verificationTokenExpiry: Date,
   createdAt: {
     type: Date,
     default: Date.now,

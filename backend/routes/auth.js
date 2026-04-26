@@ -34,4 +34,10 @@ router.get('/me',              verifyToken, catchAsync(authController.getMe));
 // Protected: update profile (both roles)
 router.put('/profile',         verifyToken, catchAsync(authController.updateProfile));
 
+// Email verification (public — called from verification email link)
+router.get('/verify-email',    catchAsync(authController.verifyEmail));
+
+// Resend verification email (auth required)
+router.post('/resend-verification', verifyToken, catchAsync(authController.resendVerification));
+
 module.exports = router;

@@ -352,7 +352,7 @@
           <!-- Subject -->
           <div class="form-group">
             <label for="subject">Subject *</label>
-            <input type="text" id="subject" placeholder="e.g., Algebra" required>
+            <input type="text" id="subject" placeholder="Enter subject (e.g., Mathematics, Physics, Programming)" required>
           </div>
 
           <!-- Date -->
@@ -459,8 +459,11 @@
     window.addEventListener('DOMContentLoaded', async () => {
       requireAuth();
 
-      if (getUserRole() !== 'student') {
-        showError('Only students can book sessions');
+      const userRole = getUserRole();
+      console.debug('[BOOKING] Role check:', { userRole, isStudent: userRole === 'student' });
+      
+      if (userRole !== 'student') {
+        showError(`Only students can book sessions. Your role: "${userRole || 'unknown'}"`);
         return;
       }
 
@@ -611,12 +614,13 @@
         // Rich success UX with next-step options
         successMsg.innerHTML = `
           <div style="text-align: center;">
-            <div style="font-size: 48px; margin-bottom: 10px;">🎉</div>
-            <h3 style="margin-bottom: 8px; color: #155724;">Booking Confirmed!</h3>
-            <p style="margin-bottom: 15px;">Session scheduled for <strong>${formatDate(sessionDate)}</strong> at <strong>${formatTime(startTime)}</strong></p>
-            <p style="color: #666; font-size: 13px; margin-bottom: 20px;">Your tutor will be notified. You can message them to discuss session details.</p>
+            <div style="font-size: 48px; margin-bottom: 10px;">📨</div>
+            <h3 style="margin-bottom: 8px; color: #155724;">Booking Request Sent!</h3>
+            <p style="margin-bottom: 15px;">Session requested for <strong>${formatDate(sessionDate)}</strong> at <strong>${formatTime(startTime)}</strong></p>
+            <p style="color: #f39c12; font-weight: 600; font-size: 14px; margin-bottom: 8px;">⏳ Waiting for tutor to accept your request</p>
+            <p style="color: #666; font-size: 13px; margin-bottom: 20px;">You'll be notified when the tutor responds. Once accepted, you can proceed to payment.</p>
             <div style="display: flex; gap: 10px; justify-content: center;">
-              ${bookingId ? `<a href="chat.html?bookingId=${bookingId}" style="text-decoration:none;"><button style="padding:10px 20px;background:#5BD1D7;color:white;border:none;border-radius:5px;font-weight:600;cursor:pointer;">💬 Message Tutor</button></a>` : ''}
+              <a href="booking-history.html" style="text-decoration:none;"><button style="padding:10px 20px;background:#5BD1D7;color:white;border:none;border-radius:5px;font-weight:600;cursor:pointer;">📋 View My Bookings</button></a>
               <a href="dashboard.html" style="text-decoration:none;"><button style="padding:10px 20px;background:#f0f0f0;color:#333;border:none;border-radius:5px;font-weight:600;cursor:pointer;">📊 Go to Dashboard</button></a>
             </div>
           </div>

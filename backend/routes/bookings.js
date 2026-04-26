@@ -17,7 +17,7 @@
  *   - Errors: utils/catchAsync.js (auto-forwards to global handler)
  */
 const express = require('express');
-const { verifyToken, restrictTo } = require('../middleware/auth');
+const { verifyToken, restrictTo, requireVerified } = require('../middleware/auth');
 const catchAsync = require('../utils/catchAsync');
 const bookingController = require('../controllers/booking.controller');
 const {
@@ -31,7 +31,7 @@ const router = express.Router();
 // ========== ROUTES ==========
 
 // Create booking (students only)
-router.post('/',      verifyToken, restrictTo('student'), validateCreateBooking, catchAsync(bookingController.create));
+router.post('/',      verifyToken, restrictTo('student'), requireVerified, validateCreateBooking, catchAsync(bookingController.create));
 
 // Get current user's bookings
 router.get('/my-bookings', verifyToken, catchAsync(bookingController.getMyBookings));
@@ -53,6 +53,12 @@ router.get('/:id',         verifyToken, catchAsync(bookingController.getById));
 
 // Cancel a booking
 router.put('/:id/cancel',  verifyToken, validateCancelBooking, catchAsync(bookingController.cancel));
+
+// Tutor accepts a pending booking
+router.patch('/:id/accept', verifyToken, restrictTo('tutor'), catchAsync(bookingController.accept));
+
+// Tutor rejects a pending booking
+router.patch('/:id/reject', verifyToken, restrictTo('tutor'), catchAsync(bookingController.reject));
 
 // Add feedback (students only)
 router.put('/:id/feedback', verifyToken, restrictTo('student'), validateFeedback, catchAsync(bookingController.addFeedback));

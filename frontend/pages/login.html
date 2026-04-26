@@ -232,8 +232,14 @@
         }
 
         // Save token to localStorage — use backend response role (not form selection)
+        console.debug('[LOGIN] Response data:', data);
         localStorage.setItem('authToken', data.token);
-        localStorage.setItem('userRole', data.user.role || selectedRole);
+        
+        // Normalize role to lowercase
+        const role = (data.user?.role || selectedRole || '').toLowerCase().trim();
+        console.debug('[LOGIN] Storing role:', { received: data.user?.role, fallback: selectedRole, normalized: role });
+        localStorage.setItem('userRole', role);
+        
         localStorage.setItem('userId', data.user.id);
         localStorage.setItem('firstName', data.user.firstName || '');
         localStorage.setItem('lastName', data.user.lastName || '');

@@ -219,6 +219,16 @@
       text-transform: uppercase;
     }
 
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-accepted {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+
     .status-confirmed {
       background: #d1ecf1;
       color: #0c5460;
@@ -232,6 +242,11 @@
     .status-cancelled {
       background: #f8d7da;
       color: #721c24;
+    }
+
+    .status-rejected {
+      background: #e2e3e5;
+      color: #383d41;
     }
 
     /* Actions */
@@ -482,13 +497,19 @@
 
     <!-- Tabs -->
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('upcoming')">📅 Upcoming</button>
+      <button class="tab-btn active" onclick="switchTab('pending')">⏳ Pending</button>
+      <button class="tab-btn" onclick="switchTab('upcoming')">📅 Upcoming</button>
       <button class="tab-btn" onclick="switchTab('completed')">✓ Completed</button>
       <button class="tab-btn" onclick="switchTab('cancelled')">✗ Cancelled</button>
     </div>
 
+    <!-- Pending Bookings -->
+    <div id="pendingTab" class="tab-content">
+      <div id="pendingBookings"></div>
+    </div>
+
     <!-- Upcoming Bookings -->
-    <div id="upcomingTab" class="tab-content">
+    <div id="upcomingTab" class="tab-content" style="display: none;">
       <div id="upcomingBookings"></div>
     </div>
 
@@ -590,36 +611,132 @@
     }
 
     function renderBookings() {
-      const upcoming = bookings.filter(b => b.status === 'confirmed');
-      const completed = bookings.filter(b => b.status === 'completed');
-      const cancelled = bookings.filter(b => b.status === 'cancelled');
+      const now = new Date();
+      const role = getUserRole();
 
+      // Pending: awaiting tutor approval (or student waiting)
+      const pending = bookings.filter(b => b.status === 'pending');
+
+      // Accepted: tutor approved, student needs to pay
+      const accepted = bookings.filter(b => b.status === 'accepted');
+
+      // Upcoming: confirmed/accepted AND future date
+      const upcoming = bookings.filter(b => {
+        if (!['accepted', 'confirmed'].includes(b.status)) return false;
+        const sessionDateTime = new Date(b.sessionDate);
+        if (b.endTime) {
+          const [h, m] = b.endTime.split(':').map(Number);
+          sessionDateTime.setHours(h, m, 0, 0);
+        }
+        return sessionDateTime > now;
+      });
+
+      // Past sessions
+      const pastConfirmed = bookings.filter(b => {
+        if (!['accepted', 'confirmed'].includes(b.status)) return false;
+        const sessionDateTime = new Date(b.sessionDate);
+        if (b.endTime) {
+          const [h, m] = b.endTime.split(':').map(Number);
+          sessionDateTime.setHours(h, m, 0, 0);
+        }
+        return sessionDateTime <= now;
+      });
+
+      const completed = bookings.filter(b => b.status === 'completed').concat(pastConfirmed);
+      const cancelled = bookings.filter(b => ['cancelled', 'rejected'].includes(b.status));
+
+      // Merge pending + accepted for the "Pending" tab
+      renderBookingList('pendingBookings', pending.concat(accepted));
       renderBookingList('upcomingBookings', upcoming);
       renderBookingList('completedBookings', completed);
       renderBookingList('cancelledBookings', cancelled);
+
+      // Update tab counts
+      const pendingCount = pending.length + accepted.length;
+      const pendingTab = document.querySelector('.tab-btn');
+      if (pendingCount > 0) {
+        pendingTab.innerHTML = `⏳ Pending (${pendingCount})`;
+      }
     }
 
     function renderBookingList(containerId, bookings) {
       const container = document.getElementById(containerId);
+      const role = getUserRole();
 
       if (bookings.length === 0) {
         container.innerHTML = `
           <div class="empty-state">
             <div class="empty-icon">📭</div>
-            <div class="empty-text">No bookings yet</div>
-            <div class="empty-subtext">Book a session to get started</div>
+            <div class="empty-text">No bookings here</div>
+            <div class="empty-subtext">${role === 'student' ? 'Book a session to get started' : 'Sessions will appear here when students book you'}</div>
           </div>
         `;
         return;
       }
 
-      container.innerHTML = bookings.map(booking => `
+      container.innerHTML = bookings.map(booking => {
+        const displayName = role === 'tutor' ? booking.studentName : booking.tutorName;
+        const avatarEmoji = role === 'tutor' ? '👨‍🎓' : '👨‍🏫';
+
+        // Build action buttons based on status + role
+        let actions = '';
+
+        // Tutor: Accept/Reject pending requests
+        if (booking.status === 'pending' && role === 'tutor') {
+          actions += `
+            <button class="action-btn primary" onclick="acceptBooking('${booking._id}')">✅ Accept</button>
+            <button class="action-btn danger" onclick="rejectBooking('${booking._id}')">✗ Reject</button>
+          `;
+        }
+
+        // Student: waiting for approval
+        if (booking.status === 'pending' && role === 'student') {
+          actions += `<div style="font-size:12px;color:#f39c12;font-weight:600;padding:8px;">⏳ Waiting for tutor approval</div>`;
+          actions += `<button class="action-btn danger" onclick="openCancelModal('${booking._id}')">Cancel Request</button>`;
+        }
+
+        // Student: Pay Now for accepted bookings
+        if (booking.status === 'accepted' && role === 'student') {
+          actions += `
+            <div style="font-size:12px;color:#27ae60;font-weight:600;padding:4px 8px;">✅ Session Approved</div>
+            <a href="payment.html?bookingId=${booking._id}" style="text-decoration:none">
+              <button class="action-btn primary">💳 Pay Now — ${formatINR(booking.totalPrice)}</button>
+            </a>
+          `;
+        }
+
+        // Chat button for active bookings
+        if (!['cancelled', 'rejected', 'pending'].includes(booking.status)) {
+          actions += `<button class="action-btn" onclick="openChat('${booking._id}')" style="background:#5BD1D7;color:white;">💬 Chat</button>`;
+        }
+
+        // Cancel for confirmed/accepted
+        if (['confirmed', 'accepted'].includes(booking.status)) {
+          actions += `<button class="action-btn danger" onclick="openCancelModal('${booking._id}')">Cancel</button>`;
+        }
+
+        // Feedback for completed (student only)
+        if (booking.status === 'completed' && !booking.rating && role === 'student') {
+          actions += `<button class="action-btn primary" onclick="openFeedbackModal('${booking._id}', '${booking.tutorName}')">Leave Feedback</button>`;
+        }
+
+        // Show existing rating
+        if (booking.rating) {
+          actions += `<div style="font-size:12px;color:#5BD1D7;font-weight:600;padding:8px;">⭐ ${booking.rating}/5 - Feedback given</div>`;
+        }
+
+        // Rejected reason
+        if (booking.status === 'rejected') {
+          actions += `<div style="font-size:12px;color:#95a5a6;padding:8px;">Reason: ${booking.rejectionReason || 'No reason given'}</div>`;
+        }
+
+        return `
         <div class="booking-card">
           <div>
             <div class="booking-header">
-              <div class="booking-avatar">👨‍🏫</div>
+              <div class="booking-avatar">${avatarEmoji}</div>
               <div>
-                <div class="booking-title">${booking.tutorName}</div>
+                <div class="booking-title">${displayName}</div>
                 <div class="booking-subject">${booking.subject}</div>
               </div>
               <span class="status-badge status-${booking.status.toLowerCase()}">${getStatusText(booking.status)}</span>
@@ -645,34 +762,55 @@
             ${booking.notes ? `<div style="color: #666; font-size: 13px; margin-top: 10px;">📝 Notes: ${booking.notes}</div>` : ''}
           </div>
           <div class="booking-actions">
-            <button class="action-btn" onclick="openChat('${booking._id}')" style="background: #5BD1D7; color: white;">💬 Chat</button>
-            ${booking.status === 'confirmed' ? `
-              <button class="action-btn danger" onclick="openCancelModal('${booking._id}')">Cancel</button>
-            ` : ''}
-            ${booking.status === 'completed' && !booking.rating ? `
-              <button class="action-btn primary" onclick="openFeedbackModal('${booking._id}', '${booking.tutorName}')">Leave Feedback</button>
-            ` : ''}
-            ${booking.rating ? `
-              <div style="font-size: 12px; color: #5BD1D7; font-weight: 600; padding: 8px;">
-                ⭐ ${booking.rating}/5 - Feedback given
-              </div>
-            ` : ''}
+            ${actions}
           </div>
         </div>
-      `).join('');
+      `}).join('');
     }
 
     function switchTab(tab) {
-      // Hide all tabs
       document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
-      // Show selected tab
-      const tabId = tab === 'upcoming' ? 'upcomingTab' : tab === 'completed' ? 'completedTab' : 'cancelledTab';
-      document.getElementById(tabId).style.display = 'block';
-
-      // Mark button active
+      document.getElementById(tab + 'Tab').style.display = 'block';
       event.target.classList.add('active');
+    }
+
+    // Accept a pending booking (tutor)
+    async function acceptBooking(bookingId) {
+      if (!confirm('Accept this session request?')) return;
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch(`${API_URL}/bookings/${bookingId}/accept`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
+        alert('✅ ' + data.message);
+        loadBookings();
+      } catch (err) {
+        alert('❌ ' + err.message);
+      }
+    }
+
+    // Reject a pending booking (tutor)
+    async function rejectBooking(bookingId) {
+      const reason = prompt('Reason for declining (optional):');
+      if (reason === null) return; // cancelled prompt
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch(`${API_URL}/bookings/${bookingId}/reject`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
+        alert(data.message);
+        loadBookings();
+      } catch (err) {
+        alert('❌ ' + err.message);
+      }
     }
 
     function openChat(bookingId) {

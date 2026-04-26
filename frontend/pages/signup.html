@@ -354,17 +354,22 @@
         if (!response.ok) throw new Error(data.message);
 
         localStorage.setItem('authToken', data.token);
-        localStorage.setItem('userRole', data.user.role || 'student');
+        
+        // Normalize role to lowercase
+        const role = (data.user?.role || 'student').toLowerCase().trim();
+        console.debug('[SIGNUP] Storing role:', { received: data.user?.role, normalized: role });
+        localStorage.setItem('userRole', role);
+        
         localStorage.setItem('userId', data.user.id);
         localStorage.setItem('firstName', data.user.firstName || '');
         localStorage.setItem('lastName', data.user.lastName || '');
 
-        successMsg.textContent = 'Account created! Redirecting...';
+        successMsg.innerHTML = '✅ Account created! <strong>Check your email</strong> to verify your account. Redirecting to dashboard...';
         successMsg.style.display = 'block';
 
         setTimeout(() => {
           window.location.href = 'dashboard.html';
-        }, 1500);
+        }, 3000);
       } catch (error) {
         errorMsg.textContent = error.message;
         errorMsg.style.display = 'block';
@@ -379,6 +384,7 @@
 
       try {
         const subjects = document.getElementById('tutorSubjects').value.split(',').map(s => s.trim());
+        console.debug('[SIGNUP] Submitting tutor signup form');
 
         const response = await fetch(`${API_URL}/auth/tutor/signup`, {
           method: 'POST',
@@ -396,21 +402,27 @@
         });
 
         const data = await response.json();
+        console.debug('[SIGNUP] Tutor signup response:', data);
 
         if (!response.ok) throw new Error(data.message);
 
         localStorage.setItem('authToken', data.token);
-        localStorage.setItem('userRole', data.user.role || 'tutor');
+        
+        // Normalize role to lowercase
+        const role = (data.user?.role || 'tutor').toLowerCase().trim();
+        console.debug('[SIGNUP] Storing tutor role:', { received: data.user?.role, normalized: role });
+        localStorage.setItem('userRole', role);
+        
         localStorage.setItem('userId', data.user.id);
         localStorage.setItem('firstName', data.user.firstName || '');
         localStorage.setItem('lastName', data.user.lastName || '');
 
-        successMsg.textContent = 'Account created! Redirecting...';
+        successMsg.innerHTML = '✅ Account created! <strong>Check your email</strong> to verify your account. Redirecting to dashboard...';
         successMsg.style.display = 'block';
 
         setTimeout(() => {
           window.location.href = 'dashboard.html';
-        }, 1500);
+        }, 3000);
       } catch (error) {
         errorMsg.textContent = error.message;
         errorMsg.style.display = 'block';

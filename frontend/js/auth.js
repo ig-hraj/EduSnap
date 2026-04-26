@@ -10,9 +10,23 @@ const getAuthToken = () => {
   return localStorage.getItem('authToken');
 };
 
-// Get user role from localStorage
+// Get user role from localStorage (normalized to lowercase)
 const getUserRole = () => {
-  return localStorage.getItem('userRole');
+  const role = localStorage.getItem('userRole');
+  const normalized = role ? role.toLowerCase().trim() : null;
+  console.debug('[AUTH] getUserRole():', { stored: role, normalized, type: typeof role });
+  return normalized;
+};
+
+// Set user role in localStorage (normalized to lowercase)
+const setUserRole = (role) => {
+  if (!role) {
+    console.warn('[AUTH] setUserRole() called with empty role');
+    return;
+  }
+  const normalized = role.toLowerCase().trim();
+  console.debug('[AUTH] setUserRole():', { original: role, normalized });
+  localStorage.setItem('userRole', normalized);
 };
 
 // Get user name from localStorage
