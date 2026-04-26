@@ -199,7 +199,8 @@
 <body>
     <div class="navbar">
         <h1>🎓 EduSnap - Payment</h1>
-        <button id="logoutBtn" class="btn">Logout</button>
+        <!-- Logout button hidden on payment page for focused experience -->
+        <!-- <button id="logoutBtn" class="btn">Logout</button> -->
     </div>
 
     <div class="container">
@@ -268,8 +269,7 @@
             // Load booking details
             await loadBookingDetails();
 
-            // Setup logout
-            document.getElementById('logoutBtn').addEventListener('click', logout);
+            // Logout button removed from payment page
         });
 
         /**
@@ -339,6 +339,8 @@
             payButton.innerHTML = '<div class="loading"><div class="spinner"></div> Processing...</div>';
 
             try {
+                console.log('[PAYMENT] Initiating payment for booking:', currentBookingId);
+                
                 // Create payment order
                 const token = getAuthToken();
                 const orderResponse = await fetch('/api/payments/order', {
@@ -358,17 +360,26 @@
                 }
 
                 const orderData = await orderResponse.json();
+                console.log('[PAYMENT] Order created successfully:', {
+                    orderId: orderData.orderId,
+                    amount: orderData.amount,
+                    currency: orderData.currency,
+                });
 
-                // Initialize Razorpay
+                // Initialize Razorpay options
                 const options = {
                     key: orderData.keyId,
-                    amount: bookingData.totalPrice * 100, // Amount in paise
-                    currency: 'INR',
+                    amount: orderData.amount * 100, // Convert to paise
+                    currency: orderData.currency || 'INR',
                     order_id: orderData.orderId,
                     name: 'EduSnap',
                     description: `${bookingData.subject} with ${bookingData.tutorName}`,
-                    image: '/images/logo.png', // Optional: your logo
+                    image: '/images/logo.png',
                     handler: async function (response) {
+                        console.log('[PAYMENT] Handler called with response:', {
+                            order_id: response.razorpay_order_id,
+                            payment_id: response.razorpay_payment_id,
+                        });
                         await handlePaymentSuccess(response);
                     },
                     prefill: {
@@ -380,12 +391,68 @@
                     },
                     modal: {
                         ondismiss: function () {
+                            console.log('[PAYMENT] Payment modal dismissed');
                             payButton.disabled = false;
                             payButton.innerHTML = `${formatINR(bookingData.totalPrice)} - Proceed to Payment`;
-                setTimeout(() => {
-                    window.location.href = `/pages/booking-history.html`;
-                }, 2000);
+                        }
+                    }
+                };
+
+                console.log('[PAYMENT] Opening Razorpay checkout');
+                // CRITICAL: Open Razorpay checkout
+                const razorpay = new Razorpay(options);
+                razorpay.open();
+
             } catch (error) {
+                console.error('[PAYMENT] Error during payment initiation:', error);
+                showError(error.message || 'Payment failed. Please try again.');
+                payButton.disabled = false;
+                payButton.innerHTML = `${formatINR(bookingData.totalPrice)} - Proceed to Payment`;
+            }
+        }
+
+        /**
+         * Handle payment success and verify with backend
+         */
+        async function handlePaymentSuccess(response) {
+            const payButton = document.getElementById('payButton');
+            payButton.disabled = true;
+            payButton.innerHTML = '<div class="loading"><div class="spinner"></div> Verifying Payment...</div>';
+
+            try {
+                console.log('[PAYMENT] Verifying payment signature...');
+                
+                const token = getAuthToken();
+                const verifyResponse = await fetch('/api/payments/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        orderId: response.razorpay_order_id,
+                        paymentId: response.razorpay_payment_id,
+                        signature: response.razorpay_signature,
+                    }),
+                });
+
+                if (!verifyResponse.ok) {
+                    const error = await verifyResponse.json();
+                    throw new Error(error.message || 'Payment verification failed');
+                }
+
+                const verifyData = await verifyResponse.json();
+                console.log('[PAYMENT] Payment verified successfully:', verifyData);
+
+                showSuccess('✅ Payment successful! Session confirmed.');
+                
+                // Redirect to dashboard after 3 seconds
+                setTimeout(() => {
+                    window.location.href = '/pages/dashboard.html';
+                }, 3000);
+
+            } catch (error) {
+                console.error('[PAYMENT] Verification error:', error);
                 showError('Payment verification failed: ' + error.message);
                 payButton.disabled = false;
                 payButton.innerHTML = `${formatINR(bookingData.totalPrice)} - Proceed to Payment`;
