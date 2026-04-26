@@ -16,9 +16,10 @@ const { registerChatHandlers } = require('../sockets/chatSocket');
 
 // Active users: { userId: socketId }
 const activeUsers = {};
+let io = null;
 
 function setupSocket(server) {
-  const io = socketIO(server, {
+  io = socketIO(server, {
     cors: {
       origin: process.env.FRONTEND_URL || '*',
       methods: ['GET', 'POST'],
@@ -143,4 +144,9 @@ function registerBookingHandlers(io, socket) {
   });
 }
 
-module.exports = { setupSocket, activeUsers };
+// Get the Socket.IO instance (for use in other modules like schedulers)
+function getIO() {
+  return io;
+}
+
+module.exports = { setupSocket, activeUsers, getIO };

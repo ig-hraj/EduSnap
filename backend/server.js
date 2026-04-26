@@ -9,6 +9,7 @@ const path = require('path');
 const connectDB = require('./config/db');
 const { setupSocket } = require('./config/socket-config');
 const { startReminderScheduler } = require('./config/email-reminders');
+const { startCompletionScheduler } = require('./config/completion-scheduler');
 const authRoutes = require('./routes/auth');
 const tutorRoutes = require('./routes/tutors');
 const bookingRoutes = require('./routes/bookings');
@@ -185,4 +186,7 @@ server.listen(PORT, () => {
   
   // Start email reminder scheduler
   startReminderScheduler();
+  
+  // Start booking completion scheduler (mark sessions as completed after they end)
+  startCompletionScheduler();
 });
