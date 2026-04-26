@@ -65,12 +65,30 @@ async function createOrder(bookingId, userId) {
   const amount = booking.totalPrice;
   const description = `Session with ${booking.tutorName} - ${booking.subject}`;
 
+  console.log('[PAYMENT_SERVICE] Creating order for booking:', {
+    bookingId: booking._id,
+    tutorName: booking.tutorName,
+    amount,
+    description,
+  });
+
   // Create Razorpay order
   const orderResult = await createRazorpayOrder(bookingId, amount, description, userId);
 
   if (!orderResult.success) {
-    throw new AppError('Failed to create payment order: ' + orderResult.error, 500);
+    const errorMsg = orderResult.error || 'Razorpay API error - check backend logs';
+    console.error('[PAYMENT_SERVICE] Order creation failed:', { 
+      error: errorMsg, 
+      bookingId,
+      orderResult 
+    });
+    throw new AppError(errorMsg, 500);
   }
+
+  console.log('[PAYMENT_SERVICE] Order created successfully:', {
+    orderId: orderResult.orderId,
+    amount: orderResult.amount,
+  });
 
   // Save payment record
   await Payment.create({

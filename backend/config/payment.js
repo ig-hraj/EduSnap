@@ -12,6 +12,24 @@ const razorpay = new Razorpay({
  */
 async function createPaymentOrder(bookingId, amount, description, customerId) {
   try {
+    // Validate inputs
+    if (!bookingId || !amount || !description) {
+      throw new Error(`Invalid payment inputs: bookingId=${bookingId}, amount=${amount}, description=${description}`);
+    }
+
+    console.log('[RAZORPAY] Creating order:', {
+      bookingId,
+      amount,
+      amountInPaise: Math.round(amount * 100),
+      currency: 'INR',
+      receipt: `booking_${bookingId}`,
+    });
+
+    // Check credentials
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      throw new Error('Missing Razorpay credentials in environment variables');
+    }
+
     const order = await razorpay.orders.create({
       amount: Math.round(amount * 100), // Convert to paise (1 rupee = 100 paise)
       currency: 'INR',
@@ -24,7 +42,7 @@ async function createPaymentOrder(bookingId, amount, description, customerId) {
       },
     });
 
-    console.log(`💳 Razorpay order created: ${order.id}`);
+    console.log(`✅ Razorpay order created successfully: ${order.id}`);
     return {
       success: true,
       orderId: order.id,
@@ -33,11 +51,56 @@ async function createPaymentOrder(bookingId, amount, description, customerId) {
       status: order.status,
     };
   } catch (error) {
-    console.error('❌ Error creating Razorpay order:', error);
-    return {
-      success: false,
-      error: error.message,
-    };
+    try {
+      // Handle different error types - be defensive about error being undefined
+      let errorMessage = 'Unknown error';
+      
+      if (!error) {
+        errorMessage = 'Razorpay API returned no error details';
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error.message && typeof error.message === 'string') {
+        errorMessage = error.message.trim();
+      } else if (error.description && typeof error.description === 'string') {
+        errorMessage = error.description.trim();
+      } else if (error.code && typeof error.code === 'string') {
+        errorMessage = `Razorpay error: ${error.code}`;
+      } else if (error.error && typeof error.error === 'string') {
+        errorMessage = error.error;
+      } else {
+        try {
+          errorMessage = JSON.stringify(error, null, 2);
+        } catch {
+          errorMessage = `Unable to parse error: ${error}`;
+        }
+      }
+
+      // Ensure errorMessage is never empty
+      if (!errorMessage || errorMessage.trim() === '') {
+        errorMessage = 'Payment order creation failed - no error message available';
+      }
+
+      const errorDetails = {
+        message: errorMessage,
+        statusCode: error?.statusCode || 'N/A',
+        code: error?.code || 'N/A',
+        type: error?.constructor?.name || 'Unknown',
+      };
+
+      console.error('❌ Error creating Razorpay order:', errorDetails);
+      
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    } catch (innerError) {
+      // If error processing itself fails, return generic message
+      console.error('❌ Error handler crashed:', innerError);
+      return {
+        success: false,
+        error: 'Payment order creation failed - check server logs',
+      };
+    }
   }
 }
 
