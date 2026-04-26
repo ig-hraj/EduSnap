@@ -28,6 +28,42 @@ function hasTimeOverlap(start1, end1, start2, end2) {
   return start1 < end2 && end1 > start2;
 }
 
+const IST_OFFSET_MINUTES = 330;
+
+/**
+ * Convert a Date to an IST date key: YYYY-MM-DD.
+ * This keeps booking date checks consistent across server timezones.
+ */
+function toISTDateKey(date) {
+  const shifted = new Date(date.getTime() + IST_OFFSET_MINUTES * 60 * 1000);
+  return shifted.toISOString().slice(0, 10);
+}
+
+/**
+ * Convert a Date to an IST time key: HH:MM (24-hour).
+ */
+function toISTTimeKey(date) {
+  const shifted = new Date(date.getTime() + IST_OFFSET_MINUTES * 60 * 1000);
+  return shifted.toISOString().slice(11, 16);
+}
+
+/**
+ * Check whether a booking session has ended in IST.
+ * sessionDate is treated as the booking day; endTime is HH:MM in IST.
+ */
+function hasSessionEndedInIST(sessionDate, endTime, now = new Date()) {
+  if (!sessionDate || !endTime) return false;
+
+  const sessionDay = toISTDateKey(new Date(sessionDate));
+  const today = toISTDateKey(now);
+
+  if (sessionDay < today) return true;
+  if (sessionDay > today) return false;
+
+  const currentTime = toISTTimeKey(now);
+  return currentTime >= endTime;
+}
+
 // ========== SERVICE METHODS ==========
 
 /**
@@ -256,14 +292,8 @@ async function addFeedback(bookingId, studentId, rating, feedbackText) {
   // Allow feedback for sessions that have ended, even if scheduler
   // has not yet flipped status from accepted/confirmed to completed.
   if (booking.status !== 'completed') {
-    let hasEnded = false;
-
-    if (['accepted', 'confirmed'].includes(booking.status) && booking.sessionDate && booking.endTime) {
-      const sessionEndDateTime = new Date(booking.sessionDate);
-      const [hours, minutes] = booking.endTime.split(':').map(Number);
-      sessionEndDateTime.setHours(hours, minutes, 0, 0);
-      hasEnded = sessionEndDateTime <= new Date();
-    }
+    const hasEnded = ['accepted', 'confirmed'].includes(booking.status)
+      && hasSessionEndedInIST(booking.sessionDate, booking.endTime);
 
     if (hasEnded) {
       booking.status = 'completed';

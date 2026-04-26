@@ -131,7 +131,10 @@ const addFeedback = async (bookingId, rating, feedback) => {
       body: JSON.stringify({ rating, feedback }),
     });
 
-    if (!response.ok) throw new Error('Failed to add feedback');
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Failed to add feedback');
+    }
     
     const result = await response.json();
     const booking = result.booking;
