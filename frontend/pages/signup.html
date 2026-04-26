@@ -284,11 +284,11 @@
       <div class="form-row">
         <div class="form-group">
           <label for="tutorPhone">Phone (Optional)</label>
-          <input type="tel" id="tutorPhone" placeholder="+1 (555) 000-0000">
+          <input type="tel" id="tutorPhone" placeholder="+91 (987) 654-3210">
         </div>
         <div class="form-group">
-          <label for="tutorHourlyRate">Hourly Rate ($)</label>
-          <input type="number" id="tutorHourlyRate" placeholder="25" min="1" required>
+          <label for="tutorHourlyRate">Hourly Rate (₹)</label>
+          <input type="number" id="tutorHourlyRate" placeholder="250" min="1" required>
         </div>
       </div>
 
@@ -364,7 +364,7 @@
         localStorage.setItem('firstName', data.user.firstName || '');
         localStorage.setItem('lastName', data.user.lastName || '');
 
-        successMsg.innerHTML = '✅ Account created! <strong>Check your email</strong> to verify your account. Redirecting to dashboard...';
+        successMsg.innerHTML = '✅ Account created! Redirecting to dashboard...';
         successMsg.style.display = 'block';
 
         setTimeout(() => {
@@ -417,7 +417,7 @@
         localStorage.setItem('firstName', data.user.firstName || '');
         localStorage.setItem('lastName', data.user.lastName || '');
 
-        successMsg.innerHTML = '✅ Account created! <strong>Check your email</strong> to verify your account. Redirecting to dashboard...';
+        successMsg.innerHTML = '✅ Account created! Redirecting to dashboard...';
         successMsg.style.display = 'block';
 
         setTimeout(() => {
