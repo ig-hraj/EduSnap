@@ -20,7 +20,8 @@ function buildFilter({ subject, minRate, maxRate, minRating }) {
   const filter = {};
 
   if (subject) {
-    filter.subjects = { $in: [new RegExp(escapeRegex(subject), 'i')] };
+    // Use $regex operator for proper MongoDB pattern matching
+    filter.subjects = { $regex: escapeRegex(subject), $options: 'i' };
   }
 
   if (minRate || maxRate) {

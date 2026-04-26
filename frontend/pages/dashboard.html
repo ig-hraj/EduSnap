@@ -573,6 +573,20 @@
       renderDashboard();
       // [DISABLED FOR DEMO] checkVerificationStatus();
       
+      // Auto-refresh dashboard every 30 seconds (for tutor earnings updates)
+      setInterval(() => {
+        if (userRole === 'tutor') {
+          console.log('[DASHBOARD] Auto-refreshing tutor stats...');
+          renderTutorDashboard().catch(err => console.error('[DASHBOARD] Auto-refresh failed:', err));
+        }
+      }, 30000);
+
+      // Refresh when user returns focus to page
+      window.addEventListener('focus', () => {
+        console.log('[DASHBOARD] User returned, refreshing...');
+        renderDashboard().catch(err => console.error('[DASHBOARD] Refresh failed:', err));
+      });
+      
       // Initialize Socket.IO
       setTimeout(() => {
         initSocket();
