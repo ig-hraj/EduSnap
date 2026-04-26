@@ -1,112 +1,119 @@
-# 📚 EduSnap - Real-Time Tutor Booking and Feedback System
+# EduSnap
 
-A beginner-friendly, scalable web platform where students can find tutors, book sessions in real-time, and provide feedback after sessions.
+EduSnap is a full-stack tutor booking platform where students can find tutors, request sessions, pay securely, and chat in real time.  
+It includes role-based dashboards, booking lifecycle management, and automated email reminders.
 
-## 🛠️ Tech Stack
+## Features
 
-- **Frontend**: HTML, CSS, JavaScript
-- **Backend**: Node.js + Express
-- **Database**: MongoDB
-- **Real-time**: Socket.IO
-- **Authentication**: JWT
+- Student and tutor authentication (`signup`, `login`, JWT auth, refresh token, profile update)
+- Tutor discovery with filters (subject, rate, rating), tutor profile view, and availability management
+- Booking lifecycle: `pending -> accepted -> confirmed -> completed`, plus cancel/reject flows
+- Razorpay payment flow: create order, verify signature, payment status, and refunds
+- Real-time updates using Socket.IO (booking notifications, status changes, chat events, typing indicators)
+- Session chat per booking with unread counts and read receipts
+- Reviews and ratings for completed sessions; tutor average rating auto-calculation
+- Student/tutor dashboards with booking and earnings stats
+- Automated background jobs:
+  - Session reminder emails (~1 hour before confirmed sessions)
+  - Auto-complete sessions after end time
+- Security middleware: Helmet, CORS allowlist, rate limiting, Mongo sanitize, centralized error handling
 
-## 📁 Project Structure
+## Tech Stack
 
-```
+- Frontend: HTML, CSS, vanilla JavaScript (multi-page app)
+- Backend: Node.js, Express.js, Socket.IO
+- Database: MongoDB (Mongoose)
+- Other tools: JWT, Joi validation, Nodemailer, Razorpay, Nodemon
+
+## Project Structure
+
+```text
 EduSnap/
-├── backend/
-│   ├── config/           # Database connection
-│   ├── models/           # MongoDB schemas (Student, Tutor)
-│   ├── routes/           # API endpoints
-│   ├── middleware/       # JWT verification
-│   ├── server.js         # Express app
-│   ├── .env              # Environment variables
-│   └── package.json
-│
-└── frontend/
-    ├── pages/            # HTML pages (signup, login, dashboard, etc.)
-    ├── js/               # JavaScript logic
-    ├── assets/           # CSS and images
-    └── index.html        # Landing page
+|-- backend/
+|   |-- config/         # DB, email, payments, socket, schedulers
+|   |-- controllers/    # Thin HTTP handlers
+|   |-- services/       # Core business logic
+|   |-- models/         # Mongoose models (Student, Tutor, Booking, Message, Payment)
+|   |-- routes/         # API route modules
+|   |-- middleware/     # Auth/role middleware
+|   |-- validators/     # Joi request validation
+|   |-- sockets/        # Socket event handlers (chat)
+|   `-- server.js       # App entry point
+|-- frontend/
+|   |-- pages/          # App pages (login, dashboard, booking, chat, payment, etc.)
+|   |-- js/             # Frontend API/socket helpers
+|   |-- assets/         # CSS/static assets
+|   `-- index.html      # Landing page
+|-- EMAIL_SETUP.md
+`-- RAZORPAY_SETUP.md
 ```
 
-## 🚀 Getting Started
+## Installation
 
-### Prerequisites
-- Node.js and npm installed
-- MongoDB running (locally or via MongoDB Atlas)
-
-### Backend Setup
-
-1. Navigate to backend folder
-   ```bash
-   cd backend
-   npm install
-   ```
-
-2. Update `.env` with your MongoDB URI and JWT secret
-
-3. Start the server
-   ```bash
-   npm run dev
-   ```
-   Server runs on `http://localhost:5000`
-
-### Frontend Setup
-
-1. Open `frontend/index.html` in a browser OR use a live server
-   ```bash
-   # Using Python (if available)
-   python -m http.server 8000
-   
-   # Then visit: http://localhost:8000
-   ```
-
-## 📋 API Endpoints (Step 1: Authentication)
-
-### Student Routes
-- `POST /api/auth/student/signup` - Register student
-- `POST /api/auth/student/login` - Login student
-
-### Tutor Routes
-- `POST /api/auth/tutor/signup` - Register tutor
-- `POST /api/auth/tutor/login` - Login tutor
-
-### Protected Routes
-- `GET /api/auth/me` - Get current user (requires JWT token)
-
-## 🔑 JWT Token Usage
-
-After login, store the token in `localStorage`:
-```javascript
-localStorage.setItem('authToken', data.token);
+```bash
+git clone <repo-url>
+cd EduSnap
+cd backend
+npm install
+cp .env.example .env
 ```
 
-For authenticated requests, add the token to the Authorization header:
-```javascript
-headers: {
-  'Authorization': `Bearer ${authToken}`
-}
+Update `backend/.env` with your values, then run:
+
+```bash
+npm run dev
 ```
 
-## 📝 Step 1: Authentication System - COMPLETED ✓
+Open the app at:
 
-- ✅ Database schemas (Student, Tutor)
-- ✅ Authentication routes (signup, login)
-- ✅ JWT middleware
-- ✅ Password hashing (bcrypt)
-- ✅ Frontend forms (signup.html, login.html)
-- ✅ Frontend auth logic (auth.js)
+```text
+http://localhost:5000
+```
 
-## 🔜 Next Steps
+## Environment Variables (`backend/.env`)
 
-**Step 2**: Tutor Management (view profile, update availability)
-**Step 3**: Booking System (create, cancel, list bookings)
-**Step 4**: Real-time Features (Socket.IO notifications)
-**Step 5**: Feedback & Rating System
+Required:
 
-## 📞 Support
+- `MONGO_URI`
+- `JWT_SECRET`
+- `RAZORPAY_KEY_ID`
+- `RAZORPAY_KEY_SECRET`
+- `EMAIL_HOST`
+- `EMAIL_PORT`
+- `EMAIL_USER`
+- `EMAIL_PASSWORD`
+- `EMAIL_FROM`
 
-For issues or questions, check the code comments or ask for help!
+Common optional values:
 
-Happy coding! 🚀
+- `PORT` (default: `5000`)
+- `NODE_ENV` (default: `development`)
+- `FRONTEND_URL` (used for CORS/socket origin checks)
+- `JWT_REFRESH_SECRET` (optional; falls back to derived value from `JWT_SECRET`)
+
+## Running Notes
+
+- Frontend is served by Express from the same server (`backend/server.js`).
+- Reminder and completion schedulers start automatically when the backend starts.
+- Email verification routes exist, but verification enforcement is currently disabled in code for demo mode.
+
+## API Overview
+
+Base URL: `http://localhost:5000/api`
+
+- Auth: `/auth/student/signup`, `/auth/student/login`, `/auth/tutor/signup`, `/auth/tutor/login`, `/auth/refresh`, `/auth/me`, `/auth/profile`
+- Tutors: `GET /tutors`, `GET /tutors/search/:subject`, `GET /tutors/:id`, `PUT /tutors/:id`, `PUT /tutors/:id/availability`
+- Bookings: create, list, upcoming, single booking, cancel, accept/reject, feedback, dashboard stats, tutor reviews, tutor students
+- Messages: list/send/mark-read/unread-count per booking
+- Payments: `POST /payments/order`, `POST /payments/verify`, `GET /payments/:bookingId`, `POST /payments/:bookingId/refund`
+- Health: `GET /health`
+
+## Key Workflows
+
+1. Student requests session -> booking is created as `pending`.
+2. Tutor accepts/rejects request (real-time event emitted).
+3. On accept, student pays via Razorpay.
+4. Payment verification marks booking `confirmed` and `paymentStatus=paid`.
+5. Scheduler marks session `completed` after end time.
+6. Student submits rating/feedback; tutor rating is recalculated.
+
