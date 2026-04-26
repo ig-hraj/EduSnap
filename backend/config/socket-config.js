@@ -48,7 +48,9 @@ function setupSocket(server) {
 
   // ========== Connection Handler ==========
   io.on('connection', (socket) => {
-    console.log(`✓ Connected: ${socket.id} (${socket.role} ${socket.userId})`);
+    // Join user-specific room for real-time updates
+    socket.join(`user_${socket.userId}`);
+    console.log(`✓ Connected: ${socket.id} (${socket.role} ${socket.userId}) → Joined user_${socket.userId}`);
 
     // Track active user
     activeUsers[socket.userId] = socket.id;

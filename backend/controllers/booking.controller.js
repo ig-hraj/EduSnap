@@ -11,6 +11,12 @@
  */
 const bookingService = require('../services/booking.service');
 
+// Socket.IO instance — injected by server.js
+let io = null;
+exports.setIO = (ioInstance) => {
+  io = ioInstance;
+};
+
 // POST /api/bookings
 exports.create = async (req, res) => {
   const booking = await bookingService.createBooking(req.user.id, req.body);
@@ -92,12 +98,36 @@ exports.addFeedback = async (req, res) => {
 // PATCH /api/bookings/:id/accept (tutors only)
 exports.accept = async (req, res) => {
   const booking = await bookingService.acceptBooking(req.params.id, req.user.id);
+  
+  // Emit real-time event to student
+  if (io) {
+    io.to(`user_${booking.studentId}`).emit('booking:accepted', {
+      bookingId: booking._id,
+      status: 'accepted',
+      tutorName: booking.tutorName,
+      subject: booking.subject,
+      message: `${booking.tutorName} accepted your ${booking.subject} session!`,
+    });
+  }
+  
   res.status(200).json({ message: 'Booking accepted! Student can now proceed to payment.', booking });
 };
 
 // PATCH /api/bookings/:id/reject (tutors only)
 exports.reject = async (req, res) => {
   const booking = await bookingService.rejectBooking(req.params.id, req.user.id, req.body.reason);
+  
+  // Emit real-time event to student
+  if (io) {
+    io.to(`user_${booking.studentId}`).emit('booking:rejected', {
+      bookingId: booking._id,
+      status: 'rejected',
+      tutorName: booking.tutorName,
+      reason: req.body.reason,
+      message: `${booking.tutorName} declined your session request.`,
+    });
+  }
+  
   res.status(200).json({ message: 'Booking request declined.', booking });
 };
 

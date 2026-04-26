@@ -168,6 +168,10 @@ app.use((err, req, res, next) => {
 // Initialize Socket.IO
 const io = setupSocket(server);
 
+// Inject io into booking controller for real-time updates
+const bookingController = require('./controllers/booking.controller');
+bookingController.setIO(io);
+
 // Make io available to routes
 app.set('io', io);
 

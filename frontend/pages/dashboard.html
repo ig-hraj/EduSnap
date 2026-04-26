@@ -1058,8 +1058,9 @@
                 <p class="booking-time">🕐 ${formatTime(booking.startTime)} - ${formatTime(booking.endTime)}</p>
               </div>
               <div style="font-size: 13px; text-align: center;">
-                <p style="color: #5BD1D7; font-weight: 600; margin-bottom: 8px;">$${booking.totalPrice.toFixed(2)}</p>
+                <p style="color: #5BD1D7; font-weight: 600; margin-bottom: 8px;">${formatINR(booking.totalPrice)}</p>
                 <p style="color: #999;">Duration: ${calculateDuration(booking.startTime, booking.endTime).toFixed(1)} hrs</p>
+                ${booking.status === 'accepted' && booking.paymentStatus !== 'paid' ? '<p style="color: #f39c12; font-weight: 600; font-size: 12px;">💳 Ready to pay</p>' : ''}
               </div>
               <div class="booking-action">
                 <a href="booking-history.html" style="text-decoration: none;">
@@ -1082,6 +1083,19 @@
       } catch (error) {
         console.error('Error reloading bookings:', error);
       }
+    }
+    
+    // Listen for real-time booking updates
+    if (window.socket) {
+      socket.on('booking:accepted', (data) => {
+        console.log('[DASHBOARD] Booking accepted:', data);
+        reloadStudentBookings();
+      });
+      
+      socket.on('booking:rejected', (data) => {
+        console.log('[DASHBOARD] Booking rejected:', data);
+        reloadStudentBookings();
+      });
     }
 
     // Reload tutor bookings

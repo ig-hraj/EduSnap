@@ -87,6 +87,7 @@ function initSocket() {
   });
 
   // Dashboard updates
+  // Dashboard updates
   socket.on('dashboard:booking-update', (data) => {
     emitListeners('dashboard:updated', data);
   });
@@ -97,6 +98,18 @@ function initSocket() {
 
   socket.on('dashboard:booking-cancelled', (data) => {
     emitListeners('dashboard:updated', data);
+  });
+  
+  // Real-time booking acceptance
+  socket.on('booking:accepted', (data) => {
+    console.log('[SOCKET] Booking accepted:', data);
+    emitListeners('booking:accepted', data);
+  });
+  
+  // Real-time booking rejection
+  socket.on('booking:rejected', (data) => {
+    console.log('[SOCKET] Booking rejected:', data);
+    emitListeners('booking:rejected', data);
   });
 
   socket.on('dashboard:tutor-rating-updated', (data) => {

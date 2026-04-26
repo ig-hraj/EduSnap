@@ -629,6 +629,11 @@
 
         // Hide the form
         document.getElementById('bookingForm').style.display = 'none';
+        
+        // Redirect to dashboard after 5 seconds
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 5000);
       } catch (error) {
         errorMsg.textContent = '✗ ' + error.message;
         errorMsg.style.display = 'block';
