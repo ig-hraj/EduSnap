@@ -79,6 +79,25 @@
       background: #c0392b;
     }
 
+    .theme-toggle {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(91, 209, 215, 0.3);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.3s;
+    }
+    .theme-toggle:hover {
+      background: rgba(91, 209, 215, 0.2);
+      border-color: #5BD1D7;
+      transform: rotate(20deg);
+    }
+
     /* Main Container */
     .container {
       max-width: 1200px;
@@ -397,6 +416,7 @@
       <div class="header-links">
         <a href="dashboard.html">Dashboard</a>
         <a href="#" id="userNameLink"></a>
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌙</button>
         <button class="logout-btn" onclick="logout()">Logout</button>
       </div>
     </div>
@@ -469,6 +489,7 @@
   </div>
 
   <script src="../js/auth.js"></script>
+  <script src="../js/theme.js"></script>
   <script src="../js/tutors.js"></script>
   <script>
     let allTutors = [];

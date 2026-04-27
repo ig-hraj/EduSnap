@@ -4,484 +4,112 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Booking History - EduSnap</title>
+  <link rel="stylesheet" href="../css/design-system.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f5f7fa;
-      color: #333;
-    }
-
-    /* Header */
-    .header {
-      background: white;
-      padding: 20px 0;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      font-size: 22px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      cursor: pointer;
-    }
-
-    .header-links {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-    }
-
-    .header-links a {
-      text-decoration: none;
-      color: #666;
-      font-size: 14px;
-      transition: color 0.3s;
-      cursor: pointer;
-    }
-
-    .header-links a:hover {
-      color: #5BD1D7;
-    }
-
-    .logout-btn {
-      background: #e74c3c;
-      color: white;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: background 0.3s;
-    }
-
-    .logout-btn:hover {
-      background: #c0392b;
-    }
-
-    /* Container */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 30px 20px;
-    }
-
-    /* Breadcrumb */
-    .breadcrumb {
-      margin-bottom: 30px;
-      color: #999;
-      font-size: 14px;
-    }
-
-    .breadcrumb a {
-      color: #5BD1D7;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .breadcrumb a:hover {
-      text-decoration: underline;
-    }
-
-    /* Page Header */
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-    }
-
-    .page-title {
-      font-size: 28px;
-      font-weight: 700;
-    }
-
-    /* Tabs */
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 25px;
-      border-bottom: 2px solid #e9ecef;
-    }
-
-    .tab-btn {
-      padding: 12px 20px;
-      background: none;
-      border: none;
-      color: #666;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      transition: all 0.3s;
-    }
-
-    .tab-btn.active {
-      color: #5BD1D7;
-      border-bottom-color: #5BD1D7;
-    }
-
-    .tab-btn:hover {
-      color: #5BD1D7;
-    }
-
-    /* Booking Card */
+    .breadcrumb { margin-bottom: 24px; color: var(--text-muted); font-size: 13px; }
+    .breadcrumb a { color: var(--primary); }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
     .booking-card {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 20px;
-      align-items: start;
-      transition: box-shadow 0.3s;
+      background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 20px; margin-bottom: 12px;
+      display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: start; transition: all var(--transition);
     }
-
-    .booking-card:hover {
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .booking-header {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 12px;
-    }
-
-    .booking-avatar {
-      font-size: 40px;
-    }
-
-    .booking-title {
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .booking-subject {
-      color: #5BD1D7;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .booking-info {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 15px;
-      margin: 12px 0;
-    }
-
-    .info-item {
-      font-size: 13px;
-    }
-
-    .info-label {
-      color: #999;
-      font-weight: 600;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-
-    .info-value {
-      color: #333;
-      font-weight: 600;
-    }
-
-    /* Status Badge */
-    .status-badge {
-      display: inline-block;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-
-    .status-pending {
-      background: #fff3cd;
-      color: #856404;
-    }
-
-    .status-accepted {
-      background: #d1ecf1;
-      color: #0c5460;
-    }
-
-    .status-confirmed {
-      background: #d1ecf1;
-      color: #0c5460;
-    }
-
-    .status-completed {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .status-cancelled {
-      background: #f8d7da;
-      color: #721c24;
-    }
-
-    .status-rejected {
-      background: #e2e3e5;
-      color: #383d41;
-    }
-
-    /* Actions */
-    .booking-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
+    .booking-card:hover { background: var(--bg-card-hover); border-color: rgba(91,209,215,0.15); }
+    .booking-header { display: flex; align-items: center; gap: 15px; margin-bottom: 12px; }
+    .booking-avatar { font-size: 36px; }
+    .booking-title { font-size: 15px; font-weight: 700; }
+    .booking-subject { color: var(--primary); font-size: 13px; font-weight: 600; }
+    .booking-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin: 12px 0; }
+    .info-item { font-size: 13px; }
+    .info-label { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .info-value { color: var(--text-primary); font-weight: 600; }
+    .status-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .status-pending { background: rgba(243,156,18,0.15); color: #f1c40f; }
+    .status-accepted { background: rgba(52,152,219,0.15); color: #3498db; }
+    .status-confirmed { background: rgba(46,204,113,0.15); color: #2ecc71; }
+    .status-completed { background: rgba(46,204,113,0.15); color: #2ecc71; }
+    .status-cancelled { background: rgba(231,76,60,0.15); color: #e74c3c; }
+    .status-rejected { background: rgba(149,165,166,0.15); color: #95a5a6; }
+    .booking-actions { display: flex; flex-direction: column; gap: 8px; }
     .action-btn {
-      padding: 8px 16px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background: white;
-      color: #666;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      white-space: nowrap;
+      padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg-card); color: var(--text-secondary); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all var(--transition); white-space: nowrap; font-family: 'Inter', sans-serif;
     }
-
-    .action-btn:hover {
-      background: #f5f5f5;
-      border-color: #999;
+    .action-btn:hover { border-color: var(--primary); color: var(--text-primary); }
+    .action-btn.primary { background: var(--gradient); color: white; border: none; box-shadow: 0 4px 12px var(--primary-glow); }
+    .action-btn.primary:hover { transform: translateY(-2px); }
+    .action-btn.danger { color: #e74c3c; border-color: rgba(231,76,60,0.3); }
+    .action-btn.danger:hover { background: rgba(231,76,60,0.1); }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-text { font-size: 16px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+    .empty-subtext { font-size: 13px; color: var(--text-muted); }
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
+    .modal.active { display: flex; }
+    .modal-content { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 30px; max-width: 420px; width: 90%; box-shadow: var(--shadow-lg); }
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary); }
+    .modal-body { margin-bottom: 16px; }
+    .modal-body p { color: var(--text-secondary); font-size: 14px; }
+    .modal-form-group { margin-bottom: 16px; }
+    .modal-form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .modal-form-group input, .modal-form-group textarea, .modal-form-group select {
+      width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text-primary);
     }
-
-    .action-btn.primary {
-      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
-      color: white;
-      border: none;
-    }
-
-    .action-btn.primary:hover {
-      transform: translateY(-2px);
-    }
-
-    .action-btn.danger {
-      color: #e74c3c;
-      border-color: #e74c3c;
-    }
-
-    .action-btn.danger:hover {
-      background: #fadbd8;
-    }
-
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: #999;
-    }
-
-    .empty-icon {
-      font-size: 60px;
-      margin-bottom: 15px;
-    }
-
-    .empty-text {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-
-    .empty-subtext {
-      font-size: 14px;
-      color: #bbb;
-    }
-
-    /* Modals */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
+    .modal-form-group input:focus, .modal-form-group textarea:focus { outline: none; border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--primary-glow); }
+    .modal-form-group textarea { min-height: 80px; resize: vertical; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .modal-btn { padding: 10px 18px; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--transition); font-family: 'Inter', sans-serif; }
+    .modal-btn.cancel { background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border); }
+    .modal-btn.cancel:hover { border-color: var(--primary); }
+    .modal-btn.confirm { background: var(--gradient); color: white; }
+    .modal-btn.confirm:hover { transform: translateY(-2px); box-shadow: 0 4px 12px var(--primary-glow); }
+    .star-rating { display: flex; gap: 8px; font-size: 24px; }
+    .star { cursor: pointer; color: var(--text-muted); transition: color 0.2s; }
+    .star.active, .star:hover { color: #ffc107; }
+    .message { padding: 12px; border-radius: var(--radius-sm); margin-bottom: 12px; display: none; font-size: 13px; }
+    .message.success { background: rgba(46,204,113,0.1); color: #2ecc71; border: 1px solid rgba(46,204,113,0.2); display: block; }
+    .message.error { background: rgba(231,76,60,0.1); color: #e74c3c; border: 1px solid rgba(231,76,60,0.2); display: block; }
+    .theme-toggle {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
       align-items: center;
       justify-content: center;
-    }
-
-    .modal.active {
-      display: flex;
-    }
-
-    .modal-content {
-      background: white;
-      border-radius: 10px;
-      padding: 30px;
-      max-width: 400px;
-      width: 90%;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    }
-
-    .modal-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 15px;
-    }
-
-    .modal-body {
-      margin-bottom: 20px;
-    }
-
-    .modal-form-group {
-      margin-bottom: 15px;
-    }
-
-    .modal-form-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      font-size: 13px;
-      color: #333;
-    }
-
-    .modal-form-group input,
-    .modal-form-group textarea,
-    .modal-form-group select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 13px;
-      font-family: inherit;
-    }
-
-    .modal-form-group textarea {
-      min-height: 80px;
-      resize: vertical;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-    }
-
-    .modal-btn {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s;
+      font-size: 20px;
+      transition: all var(--transition);
+      margin-right: 12px;
     }
-
-    .modal-btn.cancel {
-      background: #f0f0f0;
-      color: #666;
+    .theme-toggle:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--primary);
+      transform: rotate(20deg);
     }
-
-    .modal-btn.cancel:hover {
-      background: #e0e0e0;
-    }
-
-    .modal-btn.confirm {
-      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
-      color: white;
-    }
-
-    .modal-btn.confirm:hover {
-      transform: translateY(-2px);
-    }
-
-    /* Star Rating */
-    .star-rating {
-      display: flex;
-      gap: 8px;
-      font-size: 24px;
-    }
-
-    .star {
-      cursor: pointer;
-      color: #ddd;
-      transition: color 0.2s;
-    }
-
-    .star.active,
-    .star:hover {
-      color: #ffc107;
-    }
-
-    .message {
-      padding: 12px;
-      border-radius: 6px;
-      margin-bottom: 15px;
-      display: none;
-      font-size: 13px;
-    }
-
-    .message.success {
-      background: #d4edda;
-      color: #155724;
-      display: block;
-    }
-
-    .message.error {
-      background: #f8d7da;
-      color: #721c24;
-      display: block;
-    }
-
     @media (max-width: 768px) {
-      .booking-card {
-        grid-template-columns: 1fr;
-      }
-
-      .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-      }
-
-      .booking-info {
-        grid-template-columns: repeat(2, 1fr);
-      }
+      .booking-card { grid-template-columns: 1fr; }
+      .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .booking-info { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
   <!-- Header -->
-  <div class="header">
-    <div class="header-content">
+  <nav class="navbar">
+    <div class="navbar-inner">
       <div class="logo" onclick="window.location.href='/'">📚 EduSnap</div>
-      <div class="header-links">
+      <div class="nav-links">
         <a href="dashboard.html">Dashboard</a>
         <a href="tutor-list.html" id="findTutorsLink">Find Tutors</a>
-        <button class="logout-btn" onclick="logout()">Logout</button>
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌙</button>
+        <button class="btn-logout" onclick="logout()">Logout</button>
       </div>
     </div>
-  </div>
+  </nav>
 
   <!-- Container -->
   <div class="container">
@@ -491,12 +119,12 @@
     </div>
 
     <!-- Page Header -->
-    <div class="page-header">
+    <div class="page-header animate-in">
       <div class="page-title">My Bookings</div>
     </div>
 
     <!-- Tabs -->
-    <div class="tabs">
+    <div class="tabs animate-in animate-in-1">
       <button class="tab-btn active" onclick="switchTab('pending')">⏳ Pending</button>
       <button class="tab-btn" onclick="switchTab('upcoming')">📅 Upcoming</button>
       <button class="tab-btn" onclick="switchTab('completed')">✓ Completed</button>
@@ -529,7 +157,7 @@
     <div class="modal-content">
       <div class="modal-title">Cancel Booking</div>
       <div class="modal-body">
-        <p style="color: #666; font-size: 14px;">Are you sure you want to cancel this booking? Please provide a reason.</p>
+        <p>Are you sure you want to cancel this booking? Please provide a reason.</p>
       </div>
       <div class="modal-form-group">
         <label for="cancelReason">Reason for Cancellation</label>
@@ -548,7 +176,7 @@
     <div class="modal-content">
       <div class="modal-title">Rate Your Tutor</div>
       <div class="modal-body">
-        <p style="color: #666; font-size: 14px; margin-bottom: 15px;">How was your session with <strong id="feedbackTutorName">-</strong>?</p>
+        <p style="margin-bottom: 15px;">How was your session with <strong id="feedbackTutorName">-</strong>?</p>
         <div class="modal-form-group">
           <label>Rating</label>
           <div class="star-rating" id="starRating">
@@ -573,6 +201,7 @@
   </div>
 
   <script src="../js/auth.js"></script>
+  <script src="../js/theme.js"></script>
   <script src="../js/bookings.js"></script>
   <script src="../js/notifications.js"></script>
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
@@ -614,13 +243,8 @@
       const now = new Date();
       const role = getUserRole();
 
-      // Pending: awaiting tutor approval (or student waiting)
       const pending = bookings.filter(b => b.status === 'pending');
-
-      // Accepted: tutor approved, student needs to pay
       const accepted = bookings.filter(b => b.status === 'accepted');
-
-      // Upcoming: confirmed/accepted AND future date
       const upcoming = bookings.filter(b => {
         if (!['accepted', 'confirmed'].includes(b.status)) return false;
         const sessionDateTime = new Date(b.sessionDate);
@@ -631,7 +255,6 @@
         return sessionDateTime > now;
       });
 
-      // Past sessions
       const pastConfirmed = bookings.filter(b => {
         if (!['accepted', 'confirmed'].includes(b.status)) return false;
         const sessionDateTime = new Date(b.sessionDate);
@@ -645,13 +268,11 @@
       const completed = bookings.filter(b => b.status === 'completed').concat(pastConfirmed);
       const cancelled = bookings.filter(b => ['cancelled', 'rejected'].includes(b.status));
 
-      // Merge pending + accepted for the "Pending" tab
       renderBookingList('pendingBookings', pending.concat(accepted));
       renderBookingList('upcomingBookings', upcoming);
       renderBookingList('completedBookings', completed);
       renderBookingList('cancelledBookings', cancelled);
 
-      // Update tab counts
       const pendingCount = pending.length + accepted.length;
       const pendingTab = document.querySelector('.tab-btn');
       if (pendingCount > 0) {
@@ -689,10 +310,8 @@
           (['accepted', 'confirmed'].includes(booking.status) && hasSessionEnded);
         const displayStatus = isEffectivelyCompleted ? 'completed' : booking.status;
 
-        // Build action buttons based on status + role
         let actions = '';
 
-        // Tutor: Accept/Reject pending requests
         if (booking.status === 'pending' && role === 'tutor') {
           actions += `
             <button class="action-btn primary" onclick="acceptBooking('${booking._id}')">✅ Accept</button>
@@ -700,13 +319,11 @@
           `;
         }
 
-        // Student: waiting for approval
         if (booking.status === 'pending' && role === 'student') {
           actions += `<div style="font-size:12px;color:#f39c12;font-weight:600;padding:8px;">⏳ Waiting for tutor approval</div>`;
           actions += `<button class="action-btn danger" onclick="openCancelModal('${booking._id}')">Cancel Request</button>`;
         }
 
-        // Student: Pay Now for accepted bookings (only if not already paid)
         if (booking.status === 'accepted' && booking.paymentStatus !== 'paid' && role === 'student') {
           actions += `
             <div style="font-size:12px;color:#27ae60;font-weight:600;padding:4px 8px;">✅ Session Approved</div>
@@ -716,29 +333,24 @@
           `;
         }
 
-        // Chat button for non-pending/non-cancelled bookings
         if (!['cancelled', 'rejected', 'pending'].includes(booking.status)) {
-          actions += `<button class="action-btn" onclick="openChat('${booking._id}')" style="background:#5BD1D7;color:white;">💬 Chat</button>`;
+          actions += `<button class="action-btn" onclick="openChat('${booking._id}')" style="background:var(--gradient);color:white;border:none;">💬 Chat</button>`;
         }
 
-        // Cancel only for future accepted/confirmed sessions
         if (['confirmed', 'accepted'].includes(booking.status) && !hasSessionEnded) {
           actions += `<button class="action-btn danger" onclick="openCancelModal('${booking._id}')">Cancel</button>`;
         }
 
-        // Feedback for ended sessions (student only)
         if (isEffectivelyCompleted && !booking.rating && role === 'student') {
           actions += `<button class="action-btn primary" onclick="openFeedbackModal('${booking._id}', '${booking.tutorName}')">Leave Feedback</button>`;
         }
 
-        // Show existing rating
         if (booking.rating) {
-          actions += `<div style="font-size:12px;color:#5BD1D7;font-weight:600;padding:8px;">⭐ ${booking.rating}/5 - Feedback given</div>`;
+          actions += `<div style="font-size:12px;color:var(--primary);font-weight:600;padding:8px;">⭐ ${booking.rating}/5 - Feedback given</div>`;
         }
 
-        // Rejected reason
         if (booking.status === 'rejected') {
-          actions += `<div style="font-size:12px;color:#95a5a6;padding:8px;">Reason: ${booking.rejectionReason || 'No reason given'}</div>`;
+          actions += `<div style="font-size:12px;color:var(--text-muted);padding:8px;">Reason: ${booking.rejectionReason || 'No reason given'}</div>`;
         }
 
         return `
@@ -770,7 +382,7 @@
                 <div class="info-value">${formatINR(booking.totalPrice)}</div>
               </div>
             </div>
-            ${booking.notes ? `<div style="color: #666; font-size: 13px; margin-top: 10px;">📝 Notes: ${booking.notes}</div>` : ''}
+            ${booking.notes ? `<div style="color: var(--text-muted); font-size: 13px; margin-top: 10px;">📝 Notes: ${booking.notes}</div>` : ''}
           </div>
           <div class="booking-actions">
             ${actions}
@@ -786,7 +398,6 @@
       event.target.classList.add('active');
     }
 
-    // Accept a pending booking (tutor)
     async function acceptBooking(bookingId) {
       if (!confirm('Accept this session request?')) return;
       try {
@@ -804,10 +415,9 @@
       }
     }
 
-    // Reject a pending booking (tutor)
     async function rejectBooking(bookingId) {
       const reason = prompt('Reason for declining (optional):');
-      if (reason === null) return; // cancelled prompt
+      if (reason === null) return;
       try {
         const token = localStorage.getItem('authToken');
         const res = await fetch(`${API_URL}/bookings/${bookingId}/reject`, {
@@ -839,23 +449,18 @@
     async function confirmCancel() {
       const reason = document.getElementById('cancelReason').value;
       const msgDiv = document.getElementById('cancelMessage');
-
       if (!reason.trim()) {
         msgDiv.classList.remove('success');
         msgDiv.classList.add('error');
         msgDiv.textContent = '✗ Please provide a reason for cancellation';
         return;
       }
-
       try {
         await cancelBooking(currentBookingId, reason);
         msgDiv.classList.remove('error');
         msgDiv.classList.add('success');
         msgDiv.textContent = '✓ Booking cancelled successfully';
-        setTimeout(() => {
-          closeModal('cancelModal');
-          loadBookings();
-        }, 1500);
+        setTimeout(() => { closeModal('cancelModal'); loadBookings(); }, 1500);
       } catch (error) {
         msgDiv.classList.remove('success');
         msgDiv.classList.add('error');
@@ -893,23 +498,18 @@
     async function submitFeedback() {
       const feedback = document.getElementById('feedbackText').value;
       const msgDiv = document.getElementById('feedbackMessage');
-
       if (currentRating === 0) {
         msgDiv.classList.remove('success');
         msgDiv.classList.add('error');
         msgDiv.textContent = '✗ Please select a star rating';
         return;
       }
-
       try {
         await addFeedback(currentBookingId, currentRating, feedback);
         msgDiv.classList.remove('error');
         msgDiv.classList.add('success');
         msgDiv.textContent = '✓ Thank you for your feedback!';
-        setTimeout(() => {
-          closeModal('feedbackModal');
-          loadBookings();
-        }, 1500);
+        setTimeout(() => { closeModal('feedbackModal'); loadBookings(); }, 1500);
       } catch (error) {
         msgDiv.classList.remove('success');
         msgDiv.classList.add('error');
@@ -925,37 +525,26 @@
       document.getElementById(modalId).classList.remove('active');
     }
 
-    // Close modal on background click
     document.querySelectorAll('.modal').forEach(modal => {
       modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.classList.remove('active');
-        }
+        if (e.target === modal) modal.classList.remove('active');
       });
     });
 
-    // Setup Socket.IO listeners for booking history
     function setupHistorySocketListeners() {
-      // Listen for booking status changes
       onSocket('booking:status-changed', (data) => {
         console.log('🔄 Booking status changed:', data);
         showInfo('Session Update', 'A booking status has been updated');
-        loadBookings(); // Reload bookings
+        loadBookings();
       });
-
-      // Listen for dashboard updates (booking cancel, etc)
       onSocket('dashboard:updated', (data) => {
         console.log('📊 Dashboard updated:', data);
-        loadBookings(); // Reload bookings
+        loadBookings();
       });
-
-      // Listen for booking cancellation
       onSocket('dashboard:booking-cancelled', (data) => {
         console.log('❌ Booking cancelled:', data);
-        loadBookings(); // Reload bookings
+        loadBookings();
       });
-
-      // Listen for notifications
       onSocket('notification:received', (notification) => {
         console.log('🔔 Notification:', notification);
       });

@@ -4,338 +4,160 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign Up - EduSnap</title>
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../css/design-system.css">
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 0;
-      padding: 20px;
-    }
-
-    .auth-container {
-      background: white;
-      padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      width: 100%;
-      max-width: 450px;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    .auth-header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .auth-header h1 {
-      color: #333;
-      margin: 0;
-      font-size: 28px;
-    }
-
-    .auth-header p {
-      color: #666;
-      margin: 10px 0 0 0;
-      font-size: 14px;
-    }
-
-    .role-selector {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-
+    .auth-card { max-width: 480px; max-height: 90vh; overflow-y: auto; }
+    .role-selector { display: flex; gap: 12px; margin-bottom: 28px; }
     .role-option {
-      flex: 1;
-      padding: 15px;
-      border: 2px solid #ddd;
-      background: white;
-      cursor: pointer;
-      border-radius: 5px;
-      text-align: center;
-      transition: all 0.3s;
+      flex: 1; padding: 20px 16px; text-align: center;
+      background: var(--bg-input); border: 2px solid var(--border);
+      border-radius: var(--radius-md); cursor: pointer;
+      transition: all var(--transition);
     }
-
-    .role-option:hover {
-      border-color: #5BD1D7;
-    }
-
+    .role-option:hover { border-color: var(--primary); }
     .role-option.selected {
-      border-color: #5BD1D7;
-      background: #E6F9FA;
+      border-color: var(--primary); background: rgba(91,209,215,0.08);
+      box-shadow: 0 0 20px var(--primary-glow);
     }
-
-    .role-option-title {
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 5px;
-      font-size: 14px;
-    }
-
-    .role-option-desc {
-      color: #999;
-      font-size: 12px;
-    }
-
-    .form-section {
-      display: none;
-    }
-
-    .form-section.active {
-      display: block;
-    }
-
-    .form-group {
-      margin-bottom: 18px;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .form-row .form-group {
-      margin-bottom: 18px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 6px;
-      color: #333;
-      font-weight: 500;
-      font-size: 13px;
-    }
-
-    .form-group input,
-    .form-group textarea {
-      width: 100%;
-      padding: 11px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 13px;
-      box-sizing: border-box;
-      font-family: inherit;
-    }
-
-    .form-group textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    .form-group input:focus,
-    .form-group textarea:focus {
-      outline: none;
-      border-color: #5BD1D7;
-      box-shadow: 0 0 5px rgba(102, 126, 234, 0.1);
-    }
-
-    .subjects-input {
-      font-size: 12px;
-      color: #999;
-    }
-
-    .btn-signup {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s;
-      margin-top: 10px;
-    }
-
-    .btn-signup:hover {
-      transform: translateY(-2px);
-    }
-
-    .btn-signup:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .form-footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 14px;
-      color: #666;
-    }
-
-    .form-footer a {
-      color: #5BD1D7;
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    .form-footer a:hover {
-      text-decoration: underline;
-    }
-
-    .error-message,
-    .success-message {
-      font-size: 13px;
-      margin-bottom: 15px;
-      padding: 12px;
-      border-radius: 5px;
-      display: none;
-    }
-
-    .error-message {
-      color: #e74c3c;
-      background: #fadbd8;
-    }
-
-    .success-message {
-      color: #27ae60;
-      background: #d5f4e6;
-    }
+    .role-icon { font-size: 28px; margin-bottom: 6px; }
+    .role-name { font-weight: 700; font-size: 14px; }
+    .role-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .form-section { display: none; }
+    .form-section.active { display: block; animation: fadeInUp 0.3s ease; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    textarea.form-input { min-height: 80px; resize: vertical; }
+    .subjects-tag { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
   </style>
 </head>
 <body>
-  <div class="auth-container">
-    <div class="auth-header">
-      <h1>Join EduSnap</h1>
-      <p>Choose your role to get started</p>
-    </div>
-
-    <div class="role-selector">
-      <div class="role-option selected" data-role="student">
-        <div class="role-option-title">👨‍🎓 Student</div>
-        <div class="role-option-desc">Find tutors</div>
+  <div class="auth-bg">
+    <div class="auth-card animate-in">
+      <div class="auth-header">
+        <div style="font-size:36px;margin-bottom:12px;">🚀</div>
+        <h1>Join EduSnap</h1>
+        <p>Start learning or teaching today</p>
       </div>
-      <div class="role-option" data-role="tutor">
-        <div class="role-option-title">👨‍🏫 Tutor</div>
-        <div class="role-option-desc">Offer classes</div>
-      </div>
-    </div>
 
-    <div class="error-message" id="errorMessage"></div>
-    <div class="success-message" id="successMessage"></div>
-
-    <!-- Student Form -->
-    <form id="studentForm" class="form-section active">
-      <div class="form-row">
-        <div class="form-group">
-          <label for="studentFirstName">First Name</label>
-          <input type="text" id="studentFirstName" placeholder="John" required>
+      <!-- Role Selection -->
+      <div class="role-selector">
+        <div class="role-option selected" data-role="student">
+          <div class="role-icon">🎓</div>
+          <div class="role-name">Student</div>
+          <div class="role-desc">Find tutors</div>
         </div>
-        <div class="form-group">
-          <label for="studentLastName">Last Name</label>
-          <input type="text" id="studentLastName" placeholder="Doe" required>
+        <div class="role-option" data-role="tutor">
+          <div class="role-icon">👨‍🏫</div>
+          <div class="role-name">Tutor</div>
+          <div class="role-desc">Teach students</div>
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="studentEmail">Email</label>
-        <input type="email" id="studentEmail" placeholder="john@example.com" required>
-      </div>
+      <div class="error-message" id="errorMessage"></div>
+      <div class="success-message" id="successMessage"></div>
 
-      <div class="form-group">
-        <label for="studentPassword">Password</label>
-        <input type="password" id="studentPassword" placeholder="••••••••" required>
-      </div>
-
-      <div class="form-group">
-        <label for="studentPhone">Phone (Optional)</label>
-        <input type="tel" id="studentPhone" placeholder="+91 (987) 654-3210">
-      </div>
-
-      <div class="form-group">
-        <label for="studentSubjects">Subjects You Need Help In</label>
-        <input type="text" id="studentSubjects" placeholder="Math, Science, English (comma-separated)" class="subjects-input">
-      </div>
-
-      <button type="submit" class="btn-signup">Create Student Account</button>
-    </form>
-
-    <!-- Tutor Form -->
-    <form id="tutorForm" class="form-section">
-      <div class="form-row">
-        <div class="form-group">
-          <label for="tutorFirstName">First Name</label>
-          <input type="text" id="tutorFirstName" placeholder="John" required>
+      <!-- Student Form -->
+      <form id="studentForm" class="form-section active">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="studentFirstName">First Name</label>
+            <input type="text" id="studentFirstName" class="form-input" placeholder="John" required>
+          </div>
+          <div class="form-group">
+            <label for="studentLastName">Last Name</label>
+            <input type="text" id="studentLastName" class="form-input" placeholder="Doe" required>
+          </div>
         </div>
         <div class="form-group">
-          <label for="tutorLastName">Last Name</label>
-          <input type="text" id="tutorLastName" placeholder="Doe" required>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="tutorEmail">Email</label>
-        <input type="email" id="tutorEmail" placeholder="john@example.com" required>
-      </div>
-
-      <div class="form-group">
-        <label for="tutorPassword">Password</label>
-        <input type="password" id="tutorPassword" placeholder="••••••••" required>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="tutorPhone">Phone (Optional)</label>
-          <input type="tel" id="tutorPhone" placeholder="+91 (987) 654-3210">
+          <label for="studentEmail">Email</label>
+          <input type="email" id="studentEmail" class="form-input" placeholder="you@example.com" required>
         </div>
         <div class="form-group">
-          <label for="tutorHourlyRate">Hourly Rate (₹)</label>
-          <input type="number" id="tutorHourlyRate" placeholder="250" min="1" required>
+          <label for="studentPassword">Password</label>
+          <input type="password" id="studentPassword" class="form-input" placeholder="Min 6 characters" minlength="6" required>
         </div>
+        <div class="form-group">
+          <label for="studentPhone">Phone (Optional)</label>
+          <input type="tel" id="studentPhone" class="form-input" placeholder="+91 9876543210">
+        </div>
+        <div class="form-group">
+          <label for="studentSubjects">Subjects of Interest</label>
+          <input type="text" id="studentSubjects" class="form-input" placeholder="Math, Physics, Programming">
+          <div class="subjects-tag">Comma-separated</div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">Create Student Account</button>
+      </form>
+
+      <!-- Tutor Form -->
+      <form id="tutorForm" class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tutorFirstName">First Name</label>
+            <input type="text" id="tutorFirstName" class="form-input" placeholder="Jane" required>
+          </div>
+          <div class="form-group">
+            <label for="tutorLastName">Last Name</label>
+            <input type="text" id="tutorLastName" class="form-input" placeholder="Smith" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="tutorEmail">Email</label>
+          <input type="email" id="tutorEmail" class="form-input" placeholder="tutor@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="tutorPassword">Password</label>
+          <input type="password" id="tutorPassword" class="form-input" placeholder="Min 6 characters" minlength="6" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tutorPhone">Phone</label>
+            <input type="tel" id="tutorPhone" class="form-input" placeholder="+91 98765...">
+          </div>
+          <div class="form-group">
+            <label for="tutorHourlyRate">Hourly Rate (₹)</label>
+            <input type="number" id="tutorHourlyRate" class="form-input" placeholder="500" min="1" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="tutorBio">Professional Bio</label>
+          <textarea id="tutorBio" class="form-input" placeholder="Tell students about your experience..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="tutorSubjects">Subjects You Teach</label>
+          <input type="text" id="tutorSubjects" class="form-input" placeholder="Math, Science, English">
+          <div class="subjects-tag">Comma-separated</div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">Create Tutor Account</button>
+      </form>
+
+      <div class="auth-footer">
+        Already have an account? <a href="login.html">Sign in</a>
       </div>
-
-      <div class="form-group">
-        <label for="tutorBio">Professional Bio</label>
-        <textarea id="tutorBio" placeholder="Tell students about your experience and teaching style..."></textarea>
-      </div>
-
-      <div class="form-group">
-        <label for="tutorSubjects">Subjects You Teach</label>
-        <input type="text" id="tutorSubjects" placeholder="Math, Science, English (comma-separated)" class="subjects-input">
-      </div>
-
-      <button type="submit" class="btn-signup">Create Tutor Account</button>
-    </form>
-
-    <div class="form-footer">
-      Already have an account? <a href="login.html">Login here</a>
     </div>
   </div>
 
   <script src="../js/auth.js"></script>
+  <script src="../js/theme.js"></script>
   <script>
-    // API_URL is defined in auth.js — use it directly
     let selectedRole = 'student';
 
-    // Role selection
     document.querySelectorAll('.role-option').forEach(option => {
       option.addEventListener('click', () => {
         document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
         option.classList.add('selected');
         selectedRole = option.dataset.role;
-
         document.querySelectorAll('.form-section').forEach(form => form.classList.remove('active'));
         document.getElementById(`${selectedRole}Form`).classList.add('active');
       });
     });
 
-    // Student Form Submission
+    // Student signup
     document.getElementById('studentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const errorMsg = document.getElementById('errorMessage');
       const successMsg = document.getElementById('successMessage');
-
+      errorMsg.style.display = 'none';
       try {
         const subjects = document.getElementById('studentSubjects').value.split(',').map(s => s.trim());
-
         const response = await fetch(`${API_URL}/auth/student/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -348,44 +170,31 @@
             subjects: subjects.filter(s => s.length > 0),
           }),
         });
-
         const data = await response.json();
-
         if (!response.ok) throw new Error(data.message);
-
         localStorage.setItem('authToken', data.token);
-        
-        // Normalize role to lowercase
         const role = (data.user?.role || 'student').toLowerCase().trim();
-        console.debug('[SIGNUP] Storing role:', { received: data.user?.role, normalized: role });
         localStorage.setItem('userRole', role);
-        
         localStorage.setItem('userId', data.user.id);
         localStorage.setItem('firstName', data.user.firstName || '');
         localStorage.setItem('lastName', data.user.lastName || '');
-
-        successMsg.innerHTML = '✅ Account created! Redirecting to dashboard...';
+        successMsg.innerHTML = '✅ Account created! Redirecting...';
         successMsg.style.display = 'block';
-
-        setTimeout(() => {
-          window.location.href = 'dashboard.html';
-        }, 3000);
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
       } catch (error) {
         errorMsg.textContent = error.message;
         errorMsg.style.display = 'block';
       }
     });
 
-    // Tutor Form Submission
+    // Tutor signup
     document.getElementById('tutorForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const errorMsg = document.getElementById('errorMessage');
       const successMsg = document.getElementById('successMessage');
-
+      errorMsg.style.display = 'none';
       try {
         const subjects = document.getElementById('tutorSubjects').value.split(',').map(s => s.trim());
-        console.debug('[SIGNUP] Submitting tutor signup form');
-
         const response = await fetch(`${API_URL}/auth/tutor/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -400,29 +209,17 @@
             subjects: subjects.filter(s => s.length > 0),
           }),
         });
-
         const data = await response.json();
-        console.debug('[SIGNUP] Tutor signup response:', data);
-
         if (!response.ok) throw new Error(data.message);
-
         localStorage.setItem('authToken', data.token);
-        
-        // Normalize role to lowercase
         const role = (data.user?.role || 'tutor').toLowerCase().trim();
-        console.debug('[SIGNUP] Storing tutor role:', { received: data.user?.role, normalized: role });
         localStorage.setItem('userRole', role);
-        
         localStorage.setItem('userId', data.user.id);
         localStorage.setItem('firstName', data.user.firstName || '');
         localStorage.setItem('lastName', data.user.lastName || '');
-
-        successMsg.innerHTML = '✅ Account created! Redirecting to dashboard...';
+        successMsg.innerHTML = '✅ Account created! Redirecting...';
         successMsg.style.display = 'block';
-
-        setTimeout(() => {
-          window.location.href = 'dashboard.html';
-        }, 3000);
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
       } catch (error) {
         errorMsg.textContent = error.message;
         errorMsg.style.display = 'block';

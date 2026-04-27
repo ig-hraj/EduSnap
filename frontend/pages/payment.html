@@ -4,238 +4,132 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment - EduSnap</title>
-    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/design-system.css">
     <style>
         .payment-container {
-            display: flex;
-            flex-direction: column;
-            max-width: 600px;
+            max-width: 560px;
             margin: 40px auto;
-            padding: 30px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            padding: 0;
         }
-
-        .payment-header {
-            text-align: center;
-            margin-bottom: 30px;
+        .payment-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 36px;
+            box-shadow: var(--shadow-lg);
         }
-
+        .payment-header { text-align: center; margin-bottom: 28px; }
         .payment-header h1 {
-            background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin: 0 0 10px 0;
+            font-size: 24px; font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            margin: 0 0 6px 0;
         }
-
+        .payment-header p { color: var(--text-muted); font-size: 14px; }
         .booking-summary {
-            background: #f9f9f9;
+            background: rgba(255,255,255,0.04);
             padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            border-left: 4px solid #5BD1D7;
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            border-left: 3px solid var(--primary);
         }
-
         .summary-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
+            display: flex; justify-content: space-between; padding: 10px 0;
+            border-bottom: 1px solid var(--border);
         }
-
-        .summary-row:last-child {
-            border-bottom: none;
-        }
-
-        .summary-label {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .summary-value {
-            color: #666;
-        }
-
-        .price-row {
-            font-size: 1.2rem;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 2px solid #5BD1D7;
-        }
-
+        .summary-row:last-child { border-bottom: none; }
+        .summary-label { font-weight: 600; color: var(--text-secondary); font-size: 13px; }
+        .summary-value { color: var(--text-primary); font-weight: 600; font-size: 13px; }
+        .price-row { margin-top: 8px; padding-top: 12px; border-top: 2px solid rgba(91,209,215,0.3); }
         .price-row .summary-value {
-            color: #5BD1D7;
-            font-weight: 700;
-            font-size: 1.3rem;
+            font-size: 20px; font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
-
         .pay-button {
-            background: linear-gradient(135deg, #5BD1D7 0%, #4AB8BE 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            width: 100%;
-            margin: 20px 0;
+            background: var(--gradient); color: white; border: none;
+            padding: 16px 28px; border-radius: var(--radius-md);
+            font-size: 15px; font-weight: 700; cursor: pointer; width: 100%;
+            margin: 20px 0; font-family: 'Inter', sans-serif;
+            transition: all var(--transition);
+            box-shadow: 0 8px 25px var(--primary-glow);
         }
-
-        .pay-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .pay-button:active {
-            transform: translateY(0);
-        }
-
-        .pay-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
+        .pay-button:hover { transform: translateY(-2px); box-shadow: 0 12px 35px var(--primary-glow); }
+        .pay-button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
         .error-message {
-            background: #fee;
-            color: #c33;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 15px 0;
-            border-left: 4px solid #c33;
-            display: none;
+            background: rgba(231,76,60,0.1); color: #ff6b6b;
+            padding: 14px 16px; border-radius: var(--radius-sm);
+            margin: 12px 0; border-left: 3px solid #e74c3c; display: none; font-size: 13px;
         }
-
-        .error-message.show {
-            display: block;
-        }
-
+        .error-message.show { display: block; }
         .success-message {
-            background: #efe;
-            color: #3c3;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 15px 0;
-            border-left: 4px solid #3c3;
-            display: none;
+            background: rgba(46,204,113,0.1); color: #2ecc71;
+            padding: 14px 16px; border-radius: var(--radius-sm);
+            margin: 12px 0; border-left: 3px solid #2ecc71; display: none; font-size: 13px;
         }
-
-        .success-message.show {
-            display: block;
-        }
-
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #5BD1D7;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
+        .success-message.show { display: block; }
+        .loading { display: flex; align-items: center; justify-content: center; gap: 10px; }
         .payment-info {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
-            font-size: 0.9rem;
-            color: #1565c0;
-            line-height: 1.6;
+            background: rgba(91,209,215,0.08); padding: 16px;
+            border-radius: var(--radius-sm); margin: 20px 0;
+            font-size: 13px; color: var(--primary); line-height: 1.8;
+            border: 1px solid rgba(91,209,215,0.15);
         }
-
-        .razorpay-info {
-            text-align: center;
-            margin-top: 20px;
-            color: #999;
-            font-size: 0.85rem;
-        }
-
-        .razorpay-info img {
-            height: 30px;
-            margin-top: 10px;
-        }
-
-        .back-button {
-            color: #5BD1D7;
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-
-        .back-button:hover {
-            text-decoration: underline;
-        }
-
+        .razorpay-info { text-align: center; margin-top: 20px; color: var(--text-muted); font-size: 12px; }
+        .back-link { color: var(--primary); font-weight: 600; cursor: pointer; display: inline-block; margin-bottom: 20px; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
         @media (max-width: 600px) {
-            .payment-container {
-                margin: 20px 10px;
-                padding: 20px;
-            }
-
-            .summary-row {
-                flex-direction: column;
-                gap: 5px;
-            }
+            .payment-container { margin: 16px; }
+            .payment-card { padding: 24px; }
         }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <h1>🎓 EduSnap - Payment</h1>
-        <!-- Logout button hidden on payment page for focused experience -->
-        <!-- <button id="logoutBtn" class="btn">Logout</button> -->
-    </div>
+    <!-- Header -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <div class="logo" onclick="window.location.href='/'">📚 EduSnap</div>
+            <div class="nav-links">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="booking-history.html">My Bookings</a>
+            </div>
+        </div>
+    </nav>
 
     <div class="container">
-        <div class="payment-container">
-            <a class="back-button" onclick="window.history.back()">← Back to Booking</a>
+        <div class="payment-container animate-in">
+            <div class="payment-card">
+                <a class="back-link" onclick="window.history.back()">← Back to Booking</a>
 
-            <div class="payment-header">
-                <h1>💳 Complete Your Payment</h1>
-                <p>Secure payment via Razorpay</p>
-            </div>
-
-            <div id="errorMessage" class="error-message"></div>
-            <div id="successMessage" class="success-message"></div>
-
-            <div class="booking-summary" id="bookingSummary">
-                <div class="summary-row">
-                    <span class="summary-label">Loading...</span>
+                <div class="payment-header">
+                    <div style="font-size:40px;margin-bottom:12px;">💳</div>
+                    <h1>Complete Your Payment</h1>
+                    <p>Secure payment via Razorpay</p>
                 </div>
-            </div>
 
-            <div class="payment-info">
-                <p>✓ Secure payment powered by Razorpay</p>
-                <p>✓ Supports: Cards, UPI, Netbanking, Wallets</p>
-                <p>✓ 100% encryption - Your data is safe</p>
-            </div>
+                <div id="errorMessage" class="error-message"></div>
+                <div id="successMessage" class="success-message"></div>
 
-            <button id="payButton" class="pay-button" onclick="initiatePayment()">
-                <span id="payAmount">0</span> - Proceed to Payment
-            </button>
+                <div class="booking-summary" id="bookingSummary">
+                    <div class="summary-row">
+                        <span class="summary-label">Loading...</span>
+                    </div>
+                </div>
 
-            <div class="razorpay-info">
-                <p>Powered by</p>
-                <svg width="100" height="30" viewBox="0 0 100 30" fill="none">
-                    <text x="10" y="20" font-size="16" font-weight="bold" fill="#1e1e1e">Razorpay</text>
-                </svg>
+                <div class="payment-info">
+                    <p>✓ Secure payment powered by Razorpay</p>
+                    <p>✓ Supports: Cards, UPI, Netbanking, Wallets</p>
+                    <p>✓ 100% encryption — Your data is safe</p>
+                </div>
+
+                <button id="payButton" class="pay-button" onclick="initiatePayment()">
+                    <span id="payAmount">₹0</span> — Proceed to Payment
+                </button>
+
+                <div class="razorpay-info">
+                    <p>Powered by <strong>Razorpay</strong></p>
+                </div>
             </div>
         </div>
     </div>
@@ -243,6 +137,7 @@
     <!-- Razorpay Script — MUST load before inline code that uses new Razorpay() -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="../js/auth.js"></script>
+    <script src="../js/theme.js"></script>
     <script src="../js/notifications.js"></script>
 
     <script>
@@ -250,13 +145,8 @@
         let bookingData = null;
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // Check if user is logged in
-            if (!isLoggedIn()) {
-                logout();
-                return;
-            }
+            if (!isLoggedIn()) { logout(); return; }
 
-            // Get booking ID from URL
             const urlParams = new URLSearchParams(window.location.search);
             currentBookingId = urlParams.get('bookingId');
 
@@ -266,41 +156,24 @@
                 return;
             }
 
-            // Load booking details
             await loadBookingDetails();
-
-            // Logout button removed from payment page
         });
 
-        /**
-         * Load booking details
-         */
         async function loadBookingDetails() {
             try {
                 const token = getAuthToken();
                 const response = await fetch(`/api/bookings/${currentBookingId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
+                    headers: { 'Authorization': `Bearer ${token}` },
                 });
-
-                if (!response.ok) {
-                    throw new Error('Failed to load booking');
-                }
-
+                if (!response.ok) throw new Error('Failed to load booking');
                 const data = await response.json();
                 bookingData = data.booking;
-
-                // Display booking summary
                 displayBookingSummary();
             } catch (error) {
                 showError(error.message);
             }
         }
 
-        /**
-         * Display booking summary
-         */
         function displayBookingSummary() {
             const summary = document.getElementById('bookingSummary');
             summary.innerHTML = `
@@ -325,23 +198,16 @@
                     <span class="summary-value">${formatINR(bookingData.totalPrice)}</span>
                 </div>
             `;
-
-            // Update pay button amount
             document.getElementById('payAmount').textContent = formatINR(bookingData.totalPrice);
         }
 
-        /**
-         * Initiate payment
-         */
         async function initiatePayment() {
             const payButton = document.getElementById('payButton');
             payButton.disabled = true;
-            payButton.innerHTML = '<div class="loading"><div class="spinner"></div> Processing...</div>';
+            payButton.innerHTML = '<div class="loading"><span class="spinner"></span> Processing...</div>';
 
             try {
                 console.log('[PAYMENT] Initiating payment for booking:', currentBookingId);
-                
-                // Create payment order
                 const token = getAuthToken();
                 const orderResponse = await fetch('/api/payments/order', {
                     method: 'POST',
@@ -349,9 +215,7 @@
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        bookingId: currentBookingId,
-                    }),
+                    body: JSON.stringify({ bookingId: currentBookingId }),
                 });
 
                 if (!orderResponse.ok) {
@@ -360,81 +224,55 @@
                 }
 
                 const orderData = await orderResponse.json();
-                console.log('[PAYMENT] Order created successfully:', {
-                    orderId: orderData.orderId,
-                    amount: orderData.amount,
-                    currency: orderData.currency,
-                });
+                console.log('[PAYMENT] Order created:', { orderId: orderData.orderId, amount: orderData.amount });
 
-                // Initialize Razorpay options
                 const options = {
                     key: orderData.keyId,
-                    amount: orderData.amount, // Already in paise from backend — do NOT multiply again
+                    amount: orderData.amount,
                     currency: orderData.currency || 'INR',
                     order_id: orderData.orderId,
                     name: 'EduSnap',
                     description: `${bookingData.subject} with ${bookingData.tutorName}`,
                     image: '/images/logo.png',
                     handler: async function (response) {
-                        console.log('[PAYMENT] Handler called with response:', {
-                            order_id: response.razorpay_order_id,
-                            payment_id: response.razorpay_payment_id,
-                        });
+                        console.log('[PAYMENT] Handler called:', { order_id: response.razorpay_order_id, payment_id: response.razorpay_payment_id });
                         await handlePaymentSuccess(response);
                     },
-                    prefill: {
-                        email: getUserEmail(),
-                        contact: getUserPhone(),
-                    },
-                    theme: {
-                        color: '#5BD1D7',
-                    },
-                    method: {
-                        netbanking: true,
-                        card: true,
-                        upi: true,
-                        wallet: true,
-                    },
+                    prefill: { email: getUserEmail(), contact: getUserPhone() },
+                    theme: { color: '#5BD1D7' },
+                    method: { netbanking: true, card: true, upi: true, wallet: true },
                     modal: {
                         ondismiss: function () {
                             console.log('[PAYMENT] Payment modal dismissed');
                             payButton.disabled = false;
-                            payButton.innerHTML = `${formatINR(bookingData.totalPrice)} - Proceed to Payment`;
+                            payButton.innerHTML = `${formatINR(bookingData.totalPrice)} — Proceed to Payment`;
                         }
                     }
                 };
 
                 console.log('[PAYMENT] Opening Razorpay checkout');
-                // CRITICAL: Open Razorpay checkout
                 const razorpay = new Razorpay(options);
                 razorpay.open();
 
             } catch (error) {
-                console.error('[PAYMENT] Error during payment initiation:', error);
+                console.error('[PAYMENT] Error:', error);
                 showError(error.message || 'Payment failed. Please try again.');
                 payButton.disabled = false;
-                payButton.innerHTML = `${formatINR(bookingData.totalPrice)} - Proceed to Payment`;
+                payButton.innerHTML = `${formatINR(bookingData.totalPrice)} — Proceed to Payment`;
             }
         }
 
-        /**
-         * Handle payment success and verify with backend
-         */
         async function handlePaymentSuccess(response) {
             const payButton = document.getElementById('payButton');
             payButton.disabled = true;
-            payButton.innerHTML = '<div class="loading"><div class="spinner"></div> Verifying Payment...</div>';
+            payButton.innerHTML = '<div class="loading"><span class="spinner"></span> Verifying Payment...</div>';
 
             try {
                 console.log('[PAYMENT] Verifying payment signature...');
-                
                 const token = getAuthToken();
                 const verifyResponse = await fetch('/api/payments/verify', {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         orderId: response.razorpay_order_id,
                         paymentId: response.razorpay_payment_id,
@@ -448,68 +286,42 @@
                 }
 
                 const verifyData = await verifyResponse.json();
-                console.log('[PAYMENT] Payment verified successfully:', verifyData);
+                console.log('[PAYMENT] Verified:', verifyData);
 
                 showSuccess('✅ Payment successful! Session confirmed.');
-                
-                // Redirect to dashboard after 3 seconds
-                setTimeout(() => {
-                    window.location.href = '/pages/dashboard.html';
-                }, 3000);
+                payButton.innerHTML = '✓ Payment Complete';
+                setTimeout(() => { window.location.href = '/pages/dashboard.html'; }, 3000);
 
             } catch (error) {
                 console.error('[PAYMENT] Verification error:', error);
                 showError('Payment verification failed: ' + error.message);
                 payButton.disabled = false;
-                payButton.innerHTML = `${formatINR(bookingData.totalPrice)} - Proceed to Payment`;
+                payButton.innerHTML = `${formatINR(bookingData.totalPrice)} — Proceed to Payment`;
             }
         }
 
-        /**
-         * Show error message
-         */
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
             errorDiv.textContent = '❌ ' + message;
             errorDiv.classList.add('show');
-
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                errorDiv.classList.remove('show');
-            }, 5000);
+            setTimeout(() => { errorDiv.classList.remove('show'); }, 5000);
         }
 
-        /**
-         * Show success message
-         */
         function showSuccess(message) {
             const successDiv = document.getElementById('successMessage');
             successDiv.textContent = message;
             successDiv.classList.add('show');
         }
 
-        /**
-         * Get user email from token
-         */
         function getUserEmail() {
             try {
                 const token = getAuthToken();
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 return payload.email || '';
-            } catch (e) {
-                return '';
-            }
+            } catch (e) { return ''; }
         }
 
-        /**
-         * Get user phone from token (if available)
-         */
-        function getUserPhone() {
-            // This would need to be stored in JWT or fetched from API
-            return '';
-        }
+        function getUserPhone() { return ''; }
     </script>
-    
-    <!-- Razorpay already loaded in <head> -->
 </body>
 </html>
