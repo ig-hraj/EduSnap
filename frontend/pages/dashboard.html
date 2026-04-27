@@ -238,26 +238,26 @@
             </div>
             <div class="section-body">
               <div style="margin-bottom: 12px">
-                <p style="color: #999; font-size: 11px; text-transform:uppercase; margin-bottom: 4px">NAME</p>
-                <p style="font-size: 16px; font-weight: 600" id="profileName">-</p>
+                <p style="color: var(--text-muted); font-size: 11px; text-transform:uppercase; margin-bottom: 4px">NAME</p>
+                <p style="font-size: 16px; font-weight: 600; color: var(--text-primary)" id="profileName">-</p>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
                 <div>
-                  <p style="color: #999; font-size: 11px; text-transform:uppercase; margin-bottom: 4px">RATE</p>
-                  <p style="font-weight: 600" id="profileRate">-</p>
+                  <p style="color: var(--text-muted); font-size: 11px; text-transform:uppercase; margin-bottom: 4px">RATE</p>
+                  <p style="font-weight: 600; color: var(--text-primary)" id="profileRate">-</p>
                 </div>
                 <div>
-                  <p style="color: #999; font-size: 11px; text-transform:uppercase; margin-bottom: 4px">EMAIL</p>
-                  <p style="font-size:13px" id="profileEmail">-</p>
+                  <p style="color: var(--text-muted); font-size: 11px; text-transform:uppercase; margin-bottom: 4px">EMAIL</p>
+                  <p style="font-size:13px; color: var(--text-secondary)" id="profileEmail">-</p>
                 </div>
               </div>
               <div style="margin-bottom:12px">
-                <p style="color: #999; font-size: 11px; text-transform:uppercase; margin-bottom: 4px">SUBJECTS</p>
-                <p style="font-size: 13px" id="profileSubjects">-</p>
+                <p style="color: var(--text-muted); font-size: 11px; text-transform:uppercase; margin-bottom: 4px">SUBJECTS</p>
+                <p style="font-size: 13px; color: var(--text-primary);" id="profileSubjects">-</p>
               </div>
               <div>
-                <p style="color: #999; font-size: 11px; text-transform:uppercase; margin-bottom: 4px">BIO</p>
-                <p style="color: #666; font-size:13px; line-height: 1.5" id="profileBio">-</p>
+                <p style="color: var(--text-muted); font-size: 11px; text-transform:uppercase; margin-bottom: 4px">BIO</p>
+                <p style="color: var(--text-secondary); font-size:13px; line-height: 1.5" id="profileBio">-</p>
               </div>
             </div>
           </div>
@@ -269,7 +269,7 @@
               <button class="section-link" onclick="editAvailability()">Update</button>
             </div>
             <div class="section-body" id="availabilityInfo">
-              <p style="color: #999; text-align: center;">Loading...</p>
+              <p style="color: var(--text-muted); text-align: center;">Loading...</p>
             </div>
           </div>
         </div>
@@ -438,16 +438,9 @@
                 <p class="booking-time">🕐 ${formatTime(booking.startTime)} - ${formatTime(booking.endTime)}</p>
               </div>
               <div style="font-size: 13px; text-align: center;">
-                <p style="color: #5BD1D7; font-weight: 600; margin-bottom: 8px;">${formatINR(booking.totalPrice)}</p>
-                <p style="color: #999;">Duration: ${calculateDuration(booking.startTime, booking.endTime).toFixed(1)} hrs</p>
+                <p style="color: var(--primary); font-weight: 600; margin-bottom: 8px;">${formatINR(booking.totalPrice)}</p>
+                <p style="color: var(--text-muted);">Duration: ${calculateDuration(booking.startTime, booking.endTime).toFixed(1)} hrs</p>
               </div>
-              <div class="booking-action">
-                <a href="chat.html?bookingId=${booking._id}" style="text-decoration: none;">
-                  <button class="btn-small btn-primary-small">Message</button>
-                </a>
-                <a href="booking-history.html" style="text-decoration: none;">
-                  <button class="btn-small btn-secondary-small">Manage</button>
-                </a>
               </div>
             </div>
           `).join('');
@@ -537,9 +530,9 @@
         const formattedAvailability = formatAvailability(tutor.availability || {});
         document.getElementById('availabilityInfo').innerHTML = Object.entries(formattedAvailability)
           .map(([day, time]) => `
-            <div style="padding: 8px 0; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-weight: 600;">${day}</span>
-              <span style="color: ${time === 'Not Available' ? '#999' : '#5BD1D7'}; font-weight: 500;">${time}</span>
+            <div style="padding: 8px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: 600; color: var(--text-primary);">${day}</span>
+              <span style="color: ${time === 'Not Available' ? 'var(--text-muted)' : 'var(--primary)'}; font-weight: 500;">${time}</span>
             </div>
           `)
           .join('');
@@ -565,8 +558,8 @@
               </div>
               <div style="font-size: 13px; text-align: center;">
                 <p style="color: #27ae60; font-weight: 600; margin-bottom: 4px;">✅ Paid</p>
-                <p style="color: #5BD1D7; font-weight: 600; margin-bottom: 8px;">${formatINR(booking.totalPrice)}</p>
-                <p style="color: #999;">Duration: ${calculateDuration(booking.startTime, booking.endTime).toFixed(1)} hrs</p>
+                <p style="color: var(--primary); font-weight: 600; margin-bottom: 8px;">${formatINR(booking.totalPrice)}</p>
+                <p style="color: var(--text-muted);">Duration: ${calculateDuration(booking.startTime, booking.endTime).toFixed(1)} hrs</p>
               </div>
               <div class="booking-action">
                 <a href="chat.html?bookingId=${booking._id}" style="text-decoration: none;">
@@ -615,11 +608,11 @@
             <div class="booking-card">
               <div class="booking-info">
                 <h4>👨‍🎓 ${b.studentName}</h4>
-                <p style="color: #5BD1D7; font-weight: 600;">${b.subject}</p>
+                <p style="color: var(--primary); font-weight: 600;">${b.subject}</p>
                 <p>📅 ${formatDate(b.sessionDate)}</p>
                 <p class="booking-time">🕐 ${formatTime(b.startTime)} - ${formatTime(b.endTime)}</p>
-                <p style="color:#666;font-size:12px;margin-top:4px;">${formatINR(b.totalPrice)} • ${calculateDuration(b.startTime, b.endTime).toFixed(1)} hrs</p>
-                ${b.notes ? `<p style="color:#999;font-size:12px;margin-top:4px;">📝 ${b.notes}</p>` : ''}
+                <p style="color:var(--text-secondary);font-size:12px;margin-top:4px;">${formatINR(b.totalPrice)} • ${calculateDuration(b.startTime, b.endTime).toFixed(1)} hrs</p>
+                ${b.notes ? `<p style="color:var(--text-muted);font-size:12px;margin-top:4px;">📝 ${b.notes}</p>` : ''}
                 ${statusLabel}
               </div>
               <div class="booking-action" style="display:flex;flex-direction:column;gap:6px;">
@@ -640,8 +633,8 @@
                 </div>
                 <span style="color: #f4c150; font-weight: 700;">${'⭐'.repeat(r.rating)} ${r.rating}/5</span>
               </div>
-              ${r.feedback ? `<p style="color: #666; font-size: 13px; line-height: 1.5;">"${r.feedback}"</p>` : ''}
-              <p style="color: #bbb; font-size: 11px; margin-top: 6px;">${new Date(r.sessionDate).toLocaleDateString()}</p>
+              ${r.feedback ? `<p style="color: var(--text-secondary); font-size: 13px; line-height: 1.5;">"${r.feedback}"</p>` : ''}
+              <p style="color: var(--text-muted); font-size: 11px; margin-top: 6px;">${new Date(r.sessionDate).toLocaleDateString()}</p>
             </div>
           `).join('');
           document.getElementById('tutorReviews').innerHTML = reviewsHtml;

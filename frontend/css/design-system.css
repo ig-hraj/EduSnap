@@ -46,17 +46,17 @@
 
 /* ── Light Mode Variables ── */
 html[data-theme="light"] {
-  --bg-body: #f5f7fa;
+  --bg-body: #f8f9fa;
   --bg-surface: #ffffff;
-  --bg-card: rgba(91, 209, 215, 0.08);
-  --bg-card-hover: rgba(91, 209, 215, 0.12);
-  --bg-input: rgba(0, 0, 0, 0.05);
+  --bg-card: #f0f4f8;
+  --bg-card-hover: #e8f0f7;
+  --bg-input: #e8ecf1;
 
-  --text-primary: #1a2332;
-  --text-secondary: #5a6b7a;
-  --text-muted: #8899a6;
+  --text-primary: #0d1b2a;
+  --text-secondary: #475569;
+  --text-muted: #7c8fa3;
 
-  --border: rgba(91, 209, 215, 0.15);
+  --border: #cbd5e0;
   --border-focus: rgba(91, 209, 215, 0.5);
 }
 
