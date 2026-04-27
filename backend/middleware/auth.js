@@ -1,10 +1,5 @@
 /**
- * Auth Middleware — JWT verification + role guards.
- * 
- * UPGRADED from original:
- *   - Checks token type (access vs refresh)
- *   - Role-based access control via restrictTo()
- *   - Consistent AppError responses
+ * Auth Middleware - JWT verification + role guards.
  */
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/AppError');
@@ -24,7 +19,6 @@ const verifyToken = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Reject refresh tokens used as access tokens
     if (decoded.type === 'refresh') {
       return next(new AppError('Cannot use refresh token for API access', 401));
     }
@@ -41,62 +35,19 @@ const verifyToken = (req, res, next) => {
 
 /**
  * Restrict route to specific roles.
- * Usage: router.get('/admin', verifyToken, restrictTo('admin'), handler)
- * 
- * @param  {...string} roles - Allowed roles ('student', 'tutor', 'admin')
  */
 const restrictTo = (...roles) => {
   return (req, res, next) => {
-    // Normalize user role to lowercase for comparison
     const userRole = req.user.role ? req.user.role.toLowerCase().trim() : null;
-    const allowedRoles = roles.map(r => r.toLowerCase());
-    
-    console.debug('[AUTH] Role check:', {
-      userRole,
-      allowedRoles,
-      match: allowedRoles.includes(userRole),
-      endpoint: req.path,
-      method: req.method,
-    });
-    
+    const allowedRoles = roles.map((r) => r.toLowerCase());
+
     if (!allowedRoles.includes(userRole)) {
       const msg = `Access denied. Required role: ${roles.join(' or ')}, but got: "${req.user.role}"`;
-      console.warn('[AUTH] Role mismatch:', msg);
       return next(new AppError(msg, 403));
     }
+
     next();
   };
 };
 
-/**
- * Require email verification for protected actions (booking, chat, payment).
- * [DISABLED FOR DEMO] — always passes through. Uncomment logic below to re-enable.
- */
-const requireVerified = async (req, res, next) => {
-  // [DISABLED FOR DEMO] Email verification bypassed
-  return next();
-
-  /* [ORIGINAL CODE — uncomment to re-enable]
-  try {
-    const Student = require('../models/Student');
-    const Tutor = require('../models/Tutor');
-
-    const Model = req.user.role === 'student' ? Student : Tutor;
-    const user = await Model.findById(req.user.id).select('isVerified');
-
-    if (!user) {
-      return next(new AppError('User not found', 404));
-    }
-
-    if (user.isVerified === false) {
-      return next(new AppError('Please verify your email to continue. Check your inbox or resend from your dashboard.', 403));
-    }
-
-    next();
-  } catch (error) {
-    next(error);
-  }
-  */
-};
-
-module.exports = { verifyToken, restrictTo, requireVerified };
+module.exports = { verifyToken, restrictTo };

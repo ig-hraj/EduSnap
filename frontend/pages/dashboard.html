@@ -81,18 +81,6 @@
       <div class="page-subtitle" id="pageSubtitle">Manage your account and bookings</div>
     </div>
 
-    <!-- [DISABLED FOR DEMO] Email Verification Banner
-    <div id="verifyBanner" style="display:none;background:linear-gradient(135deg,#fff3cd,#ffeaa7);border:1px solid #f0c36d;border-radius:10px;padding:18px 25px;margin-bottom:25px;display:none;">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div>
-          <strong style="font-size:15px;">⚠️ Email not verified</strong>
-          <p style="color:#856404;font-size:13px;margin-top:4px;">Verify your email to unlock booking, chat, and payment features.</p>
-        </div>
-        <button onclick="resendVerification()" style="padding:10px 20px;background:#5BD1D7;color:white;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px;white-space:nowrap;">📧 Resend Verification</button>
-      </div>
-    </div>
-    -->
-
     <!-- STUDENT VIEW -->
     <div id="studentView" style="display: none;">
       <!-- Stats -->
@@ -332,7 +320,6 @@
       requireAuth();
       userRole = getUserRole();
       renderDashboard();
-      // [DISABLED FOR DEMO] checkVerificationStatus();
       
       // Auto-refresh dashboard every 30 seconds (for tutor earnings updates)
       setInterval(() => {
@@ -354,39 +341,6 @@
         setupSocketListeners();
       }, 500);
     });
-
-    // Check if user is verified — show banner if not
-    async function checkVerificationStatus() {
-      try {
-        const res = await fetch(`${API_URL}/auth/me`, {
-          headers: { 'Authorization': `Bearer ${getAuthToken()}` },
-        });
-        const data = await res.json();
-        if (data.user && data.user.isVerified === false) {
-          document.getElementById('verifyBanner').style.display = 'block';
-        }
-      } catch (e) {
-        // Silently fail — don't block dashboard
-      }
-    }
-
-    // Resend verification email
-    async function resendVerification() {
-      try {
-        const res = await fetch(`${API_URL}/auth/resend-verification`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${getAuthToken()}` },
-        });
-        const data = await res.json();
-        if (res.ok) {
-          alert('✅ Verification email sent! Check your inbox.');
-        } else {
-          alert(data.message || 'Failed to send verification email.');
-        }
-      } catch (e) {
-        alert('Network error. Please try again.');
-      }
-    }
 
     // Render dashboard based on user role
     function renderDashboard() {

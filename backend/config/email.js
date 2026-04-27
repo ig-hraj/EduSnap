@@ -1,29 +1,44 @@
 const nodemailer = require('nodemailer');
 
-// Create transporter for sending emails
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'sandbox.smtp.mailtrap.io',
-  port: process.env.EMAIL_PORT || 587,
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+let emailEnabled = false;
+let transporter = null;
 
-// Test connection on startup
-transporter.verify((error, success) => {
-  if (error) {
-    console.log('⚠️  Email service not configured properly:', error.message);
-  } else {
-    console.log('✓ Email service ready');
-  }
-});
+// Only create transporter if email credentials exist
+if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+  transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST || 'sandbox.smtp.mailtrap.io',
+    port: process.env.EMAIL_PORT || 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+
+  // Test connection — non-blocking, just sets the flag
+  transporter.verify((error) => {
+    if (error) {
+      console.log('⚠️  Email service unavailable (non-critical):', error.message);
+      console.log('   → App will continue without email notifications.');
+      emailEnabled = false;
+    } else {
+      console.log('✓ Email service ready');
+      emailEnabled = true;
+    }
+  });
+} else {
+  console.log('ℹ️  Email service not configured — skipping (no credentials in .env)');
+}
 
 /**
- * Send email
+ * Send email — gracefully skips if email service is unavailable
  */
 async function sendEmail(to, subject, html) {
+  if (!emailEnabled || !transporter) {
+    console.log(`📧 [SKIPPED] Email to ${to}: "${subject}" (email service unavailable)`);
+    return { success: false, error: 'Email service unavailable' };
+  }
+
   try {
     const mailOptions = {
       from: process.env.EMAIL_FROM || 'noreply@edusnap.com',
@@ -36,7 +51,7 @@ async function sendEmail(to, subject, html) {
     console.log(`📧 Email sent: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('❌ Email send failed:', error);
+    console.error('📧 [FAILED] Email send error:', error.message);
     return { success: false, error: error.message };
   }
 }

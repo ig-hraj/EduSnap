@@ -86,7 +86,7 @@ app.use(express.static(path.join(__dirname, '..', 'frontend')));
 // Connect to MongoDB
 connectDB();
 
-// ========== ONE-TIME MIGRATION: Auto-verify existing users ==========
+// ========== ONE-TIME MIGRATION: Force-verify all existing users ==========
 const mongoose = require('mongoose');
 mongoose.connection.once('open', async () => {
   try {
@@ -95,12 +95,18 @@ mongoose.connection.once('open', async () => {
 
     const [studentResult, tutorResult] = await Promise.all([
       Student.updateMany(
-        { isVerified: { $exists: false } },
-        { $set: { isVerified: true } }
+        { $or: [{ isVerified: { $exists: false } }, { isVerified: { $ne: true } }] },
+        {
+          $set: { isVerified: true },
+          $unset: { verificationToken: 1, verificationTokenExpiry: 1 },
+        }
       ),
       Tutor.updateMany(
-        { isVerified: { $exists: false } },
-        { $set: { isVerified: true } }
+        { $or: [{ isVerified: { $exists: false } }, { isVerified: { $ne: true } }] },
+        {
+          $set: { isVerified: true },
+          $unset: { verificationToken: 1, verificationTokenExpiry: 1 },
+        }
       ),
     ]);
 

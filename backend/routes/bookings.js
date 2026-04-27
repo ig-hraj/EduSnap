@@ -17,7 +17,7 @@
  *   - Errors: utils/catchAsync.js (auto-forwards to global handler)
  */
 const express = require('express');
-const { verifyToken, restrictTo, requireVerified } = require('../middleware/auth');
+const { verifyToken, restrictTo } = require('../middleware/auth');
 const catchAsync = require('../utils/catchAsync');
 const bookingController = require('../controllers/booking.controller');
 const {
@@ -31,7 +31,7 @@ const router = express.Router();
 // ========== ROUTES ==========
 
 // Create booking (students only)
-router.post('/',      verifyToken, restrictTo('student'), requireVerified, validateCreateBooking, catchAsync(bookingController.create));
+router.post('/',      verifyToken, restrictTo('student'), validateCreateBooking, catchAsync(bookingController.create));
 
 // Get current user's bookings
 router.get('/my-bookings', verifyToken, catchAsync(bookingController.getMyBookings));

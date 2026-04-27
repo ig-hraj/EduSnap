@@ -28,10 +28,8 @@ const studentSchema = new mongoose.Schema({
   subjects: [String], // Subjects they need help in
   isVerified: {
     type: Boolean,
-    default: false,
+    default: true,
   },
-  verificationToken: String,
-  verificationTokenExpiry: Date,
   createdAt: {
     type: Date,
     default: Date.now,

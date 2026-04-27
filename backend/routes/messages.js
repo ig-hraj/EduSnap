@@ -5,7 +5,7 @@
  * AFTER:  25 lines. Each route is one readable pipeline.
  */
 const express = require('express');
-const { verifyToken, requireVerified } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 const catchAsync = require('../utils/catchAsync');
 const messageController = require('../controllers/message.controller');
 
@@ -15,7 +15,7 @@ const router = express.Router();
 router.get('/:bookingId', verifyToken, catchAsync(messageController.getMessages));
 
 // Send a message
-router.post('/', verifyToken, requireVerified, catchAsync(messageController.sendMessage));
+router.post('/', verifyToken, catchAsync(messageController.sendMessage));
 
 // Mark message as read
 router.put('/:messageId/read', verifyToken, catchAsync(messageController.markAsRead));
