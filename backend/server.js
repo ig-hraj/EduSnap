@@ -58,7 +58,7 @@ const generalLimiter = rateLimit({
   message: { message: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: isDevelopment, // Skip rate limiting entirely in development for demos
+  skip: (req, res) => isDevelopment, // Skip rate limiting entirely in development for demos
 });
 
 const authLimiter = rateLimit({
@@ -67,14 +67,14 @@ const authLimiter = rateLimit({
   message: { message: 'Too many authentication attempts. Please wait 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: isDevelopment, // Allow multiple login attempts in development
+  skip: (req, res) => isDevelopment, // Allow multiple login attempts in development
 });
 
 const paymentLimiter = rateLimit({
   windowMs: isDevelopment ? 60 * 1000 : 15 * 60 * 1000,  // 1 min (dev) | 15 min (prod)
   max: isDevelopment ? 500 : 30,                         // 500 requests/min (dev) | 30 per 15min (prod)
   message: { message: 'Too many payment requests. Please try again later.' },
-  skip: isDevelopment, // Skip in development for testing
+  skip: (req, res) => isDevelopment, // Skip in development for testing
 });
 
 app.use('/api/', generalLimiter);
