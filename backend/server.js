@@ -48,27 +48,33 @@ app.use(cors({
   credentials: true,
 }));
 
+// ========== ENVIRONMENT-BASED RATE LIMITING ==========
+const isDevelopment = process.env.NODE_ENV !== 'production';
+
 // Rate limiting — prevent brute force and DDoS
 const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200,                  // 200 requests per window per IP
+  windowMs: isDevelopment ? 60 * 1000 : 15 * 60 * 1000, // 1 min (dev) | 15 min (prod)
+  max: isDevelopment ? 1000 : 200,                       // 1000 requests/min (dev) | 200 per 15min (prod)
   message: { message: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: isDevelopment, // Skip rate limiting entirely in development for demos
 });
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 15,                   // 15 login/signup attempts per window
+  windowMs: isDevelopment ? 60 * 1000 : 15 * 60 * 1000,  // 1 min (dev) | 15 min (prod)
+  max: isDevelopment ? 500 : 15,                         // 500 attempts/min (dev) | 15 per 15min (prod)
   message: { message: 'Too many authentication attempts. Please wait 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: isDevelopment, // Allow multiple login attempts in development
 });
 
 const paymentLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 30,
+  windowMs: isDevelopment ? 60 * 1000 : 15 * 60 * 1000,  // 1 min (dev) | 15 min (prod)
+  max: isDevelopment ? 500 : 30,                         // 500 requests/min (dev) | 30 per 15min (prod)
   message: { message: 'Too many payment requests. Please try again later.' },
+  skip: isDevelopment, // Skip in development for testing
 });
 
 app.use('/api/', generalLimiter);
@@ -188,7 +194,8 @@ server.listen(PORT, () => {
   console.log(`\n🚀 Server running on http://localhost:${PORT}`);
   console.log(`📚 EduSnap — Tutor Booking System`);
   console.log(`🔒 Security: Helmet + CORS + Rate Limiting + Mongo Sanitize`);
-  console.log(`⚡ Socket.IO enabled with JWT authentication\n`);
+  console.log(`⚡ Socket.IO enabled with JWT authentication`);
+  console.log(`${isDevelopment ? '🛠️  DEVELOPMENT MODE — Rate limits relaxed for demo' : '🔐 PRODUCTION MODE — Strict rate limits enforced'}\n`);
   
   // Start email reminder scheduler
   startReminderScheduler();
